@@ -1,0 +1,4 @@
+[submodule "projects/Gibbed.IO"]
+	path = projects/Gibbed.IO
+	url = https://github.com/gibbed/Gibbed.IO.git
+	branch = vs2017
