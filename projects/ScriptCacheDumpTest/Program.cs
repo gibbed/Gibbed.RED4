@@ -111,16 +111,49 @@ namespace ScriptCacheDumpTest
                         sb.Append(string.Join(", ", bytes.Select(b => "0x" + b.ToString("X2")).ToArray()));
                         sb.AppendLine(")");
                     }
+                    else if (instruction.Op == Opcode.Jump ||
+                        instruction.Op == Opcode.JumpFalse)
+                    {
+                        var jumpOffset = (short)instruction.Argument;
+                        sb.Append($"  {jumpOffset:+#;-#}");
+                        if (instruction.LoadInfo.HasValue == true)
+                        {
+                            sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
+                        }
+                        sb.AppendLine();
+                    }
+                    else if (instruction.Op == Opcode.Call)
+                    {
+                        (var jumpOffset, var unknown, var functionType) = ((short, ushort, FunctionType))instruction.Argument;
+
+                        sb.Append($"  ({jumpOffset:+#;-#}");
+                        if (instruction.LoadInfo.HasValue == true)
+                        {
+                            sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
+                        }
+                        sb.Append($", {unknown}, {functionType})");
+
+                        if (functionType.Parameters != null && functionType.Parameters.Length > 0)
+                        {
+                            sb.Append($"  [parameters={functionType.Parameters.Length}]");
+                        }
+
+                        sb.AppendLine();
+                    }
+                    else if (instruction.Op == (Opcode)37)
+                    {
+                        (var jumpOffset, var unknown, var unknownIndex) = ((short, ushort, uint))instruction.Argument;
+
+                        sb.Append($"  ({jumpOffset:+#;-#}");
+                        if (instruction.LoadInfo.HasValue == true)
+                        {
+                            sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
+                        }
+                        sb.AppendLine($", {unknown}, {unknownIndex})");
+                        sb.AppendLine();
+                    }
                     else
                     {
-                        if (instruction.Op == Opcode.Call)
-                        {
-                            (_, _, var functionType) = ((ushort, ushort, FunctionType))instruction.Argument;
-                            if (functionType.Parameters != null && functionType.Parameters.Length > 0)
-                            {
-                                sb.Append($"  [parameters={functionType.Parameters.Length}]");
-                            }
-                        }
                         sb.AppendLine($"  {instruction.Argument}");
                     }
 

@@ -35,5 +35,6 @@ namespace Gibbed.RED4.ScriptFormats
         Jump = 31,
         JumpFalse = 32,
         Call = 36,
+        EndCall = 38,
     }
 }

@@ -98,6 +98,13 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             return (tables.GetType(typeIndex), 8);
         }
 
+        private static (object, uint) ReadJump(Stream input, Endian endian, ICacheTables tables)
+        {
+            var jumpOffset = input.ReadValueS16(endian);
+            jumpOffset += 3; // make relative to the instruction
+            return (jumpOffset, 2);
+        }
+
         private static (object, uint) ReadType<T>(Stream input, Endian endian, ICacheTables tables)
             where T: ScriptedType
         {
@@ -149,17 +156,19 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
 
         private static (object, uint) ReadCall(Stream input, Endian endian, ICacheTables tables)
         {
-            var jumpOffset = input.ReadValueU16(endian);
+            var jumpOffset = input.ReadValueS16(endian);
             var unknown = input.ReadValueU16(endian);
             var typeIndex = input.ReadValueU32(endian);
+            jumpOffset += 3; // make relative to the instruction
             return ((jumpOffset, unknown, tables.GetType<FunctionType>(typeIndex)), 12);
         }
 
         private static (object, uint) ReadUnknown37(Stream input, Endian endian, ICacheTables tables)
         {
-            var jumpOffset = input.ReadValueU16(endian);
+            var jumpOffset = input.ReadValueS16(endian);
             var unknown = input.ReadValueU16(endian);
             var unknownIndex = input.ReadValueU32(endian);
+            jumpOffset += 3; // make relative to the instruction
             // Clearly some sort of call, but unknownIndex is not an index into the type table.
             return ((jumpOffset, unknown, unknownIndex), 12);
         }
@@ -243,8 +252,8 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
                 { (Opcode)28, ReadUnknown28 },
                 { (Opcode)29, ReadUnknown29_34 },
                 { (Opcode)30, null },
-                { Opcode.Jump, ReadValueS16 },
-                { Opcode.JumpFalse, ReadValueS16 },
+                { Opcode.Jump, ReadJump },
+                { Opcode.JumpFalse, ReadJump },
                 { (Opcode)33, ReadValueU16 },
                 { (Opcode)34, ReadUnknown29_34 },
                 { (Opcode)35, ReadUnknown35 },
