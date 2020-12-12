@@ -150,7 +150,6 @@ namespace ScriptCacheDumpTest
                             sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
                         }
                         sb.AppendLine($", {unknown}, {unknownIndex})");
-                        sb.AppendLine();
                     }
                     else
                     {
