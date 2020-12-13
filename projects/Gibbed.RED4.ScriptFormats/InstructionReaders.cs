@@ -282,7 +282,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 { Opcode.SwitchDefault, null },
                 { Opcode.Jump, ReadJump },
                 { Opcode.JumpFalse, ReadJump },
-                { (Opcode)33, ReadValueU16 },
+                { (Opcode)33, ReadJump },
                 { (Opcode)34, ReadSwitchCase },
                 { Opcode.Construct, ReadConstruct },
                 { Opcode.Call, ReadCall },

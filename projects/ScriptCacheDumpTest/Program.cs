@@ -235,6 +235,16 @@ namespace ScriptCacheDumpTest
                 }
                 sb.AppendLine(")");
             }
+            else if (instruction.Op == (Opcode)33)
+            {
+                var jumpOffset = (short)instruction.Argument;
+                sb.Append($" {jumpOffset:+#;-#}");
+                if (instruction.LoadInfo.HasValue == true)
+                {
+                    sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
+                }
+                sb.AppendLine();
+            }
             else if (instruction.Op == Opcode.Call)
             {
                 (var jumpOffset, var unknown, var functionType) = ((short, ushort, FunctionDefinition))instruction.Argument;
