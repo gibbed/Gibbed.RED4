@@ -71,11 +71,6 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
                 var unknown28 = input.ReadString(unknown28Length, true, Encoding.UTF8);
                 unknown38s[i] = new Tuple<string, string>(unknown38, unknown28);
             }
-
-            if (unknown58s.Length > 0 || unknown38s.Length > 0)
-            {
-
-            }
         }
     }
 }

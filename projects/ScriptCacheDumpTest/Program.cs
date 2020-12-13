@@ -43,127 +43,231 @@ namespace ScriptCacheDumpTest
                 scriptCacheFile = CacheFile.Load(input, validate);
             }
 
+            string currentSourcePath = null;
+            FunctionType previousFunction = null;
             var sb = new StringBuilder();
             foreach (var function in scriptCacheFile.Types
                 .OfType<FunctionType>()
-                .Where(t => t.Flags.HasFlag(FunctionFlags.HasBody)))
+                .Where(t => t.Flags.HasFlag(FunctionFlags.HasBody))
+                .OrderBy(f => f.SourceFile?.Path)
+                .ThenBy(f => f.SourceLine))
             {
-                if (function.ReturnType == null)
+                if (previousFunction != null)
                 {
-                    sb.Append("void ");
-                }
-                else
-                {
-                    sb.Append($"{GetPath(function.ReturnType)} ");
+                    sb.AppendLine();
                 }
 
-                sb.AppendLine(GetPath(function));
-
-                Opcode? previousOp = null;
-                foreach (var instruction in function.Body)
+                if (function.SourceFile?.Path != currentSourcePath)
                 {
-                    if (previousOp == Opcode.End)
+                    currentSourcePath = function.SourceFile?.Path;
+                    if (previousFunction != null)
                     {
                         sb.AppendLine();
-                    }
-
-                    if (instruction.LoadInfo == null)
-                    {
-                        sb.Append($"  (@0x?????? ????) @????");
-                    }
-                    else
-                    {
-                        var loadInfo = instruction.LoadInfo.Value;
-
-                        long absolutePosition;
-                        long relativePosition;
-                        if (validate)
-                        {
-                            absolutePosition = loadInfo.BasePosition + function.LoadPosition;
-                            relativePosition = loadInfo.BasePosition - function.BodyLoadPosition;
-                        }
-                        else
-                        {
-                            absolutePosition = loadInfo.BasePosition;
-                            relativePosition = loadInfo.BasePosition - function.BodyLoadPosition;
-                        }
-
-                        sb.Append($"  (@0x{absolutePosition:X6} {relativePosition,4}) @{loadInfo.Offset,-4}");
-                    }
-
-                    var opName = Enum.GetName(typeof(Opcode), instruction.Op) ?? (instruction.Op.ToString() + "?");
-
-                    sb.Append($"  {opName,20}");
-
-                    if (instruction.Argument == null)
-                    {
                         sb.AppendLine();
-                        continue;
-                    }
-
-                    if (instruction.Argument is string s)
-                    {
-                        sb.AppendLine($"  \"{s}\"");
-                    }
-                    else if (instruction.Argument is byte[] bytes)
-                    {
-                        sb.Append("  bytes(");
-                        sb.Append(string.Join(", ", bytes.Select(b => "0x" + b.ToString("X2")).ToArray()));
-                        sb.AppendLine(")");
-                    }
-                    else if (instruction.Op == Opcode.Jump ||
-                        instruction.Op == Opcode.JumpFalse)
-                    {
-                        var jumpOffset = (short)instruction.Argument;
-                        sb.Append($"  {jumpOffset:+#;-#}");
-                        if (instruction.LoadInfo.HasValue == true)
-                        {
-                            sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
-                        }
                         sb.AppendLine();
                     }
-                    else if (instruction.Op == Opcode.Call)
-                    {
-                        (var jumpOffset, var unknown, var functionType) = ((short, ushort, FunctionType))instruction.Argument;
-
-                        sb.Append($"  ({jumpOffset:+#;-#}");
-                        if (instruction.LoadInfo.HasValue == true)
-                        {
-                            sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
-                        }
-                        sb.Append($", {unknown}, {functionType})");
-
-                        if (functionType.Parameters != null && functionType.Parameters.Length > 0)
-                        {
-                            sb.Append($"  [parameters={functionType.Parameters.Length}]");
-                        }
-
-                        sb.AppendLine();
-                    }
-                    else if (instruction.Op == (Opcode)37)
-                    {
-                        (var jumpOffset, var unknown, var unknownIndex) = ((short, ushort, uint))instruction.Argument;
-
-                        sb.Append($"  ({jumpOffset:+#;-#}");
-                        if (instruction.LoadInfo.HasValue == true)
-                        {
-                            sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
-                        }
-                        sb.AppendLine($", {unknown}, {unknownIndex})");
-                    }
-                    else
-                    {
-                        sb.AppendLine($"  {instruction.Argument}");
-                    }
-
-                    previousOp = instruction.Op;
+                    sb.AppendLine($"// SOURCE PATH: {currentSourcePath ?? "UNKNOWN"}");
+                    sb.AppendLine();
                 }
 
-                sb.AppendLine();
-                sb.AppendLine();
+                DumpFunction(function, sb, validate);
+                previousFunction = function;
             }
 
             File.WriteAllText("test_function_dump.txt", sb.ToString(), Encoding.UTF8);
+        }
+
+        private static void DumpFunction(FunctionType function, StringBuilder sb, bool validate)
+        {
+            if (function.ReturnType == null)
+            {
+                sb.Append("void ");
+            }
+            else
+            {
+                sb.Append($"{GetPath(function.ReturnType)} ");
+            }
+
+            sb.AppendLine(GetPath(function));
+
+            if (function.Flags != FunctionFlags.None)
+            {
+                sb.AppendLine($"  // Flags : {function.Flags}");
+            }
+
+            if (function.Parameters != null)
+            {
+                foreach (var parameter in function.Parameters)
+                {
+                    sb.AppendLine($"  // {parameter} : {parameter.Unknown20}");
+                }
+            }
+            if (function.Locals != null)
+            {
+                foreach (var local in function.Locals)
+                {
+                    sb.AppendLine($"  // {local} : {local.Unknown20}");
+                }
+            }
+
+            var groups = InstructionGrouper.GroupBody(function).ToArray();
+
+            var groupStack = new LinkedList<(InstructionGrouper.Group, int)>();
+            foreach (var group in groups)
+            {
+                groupStack.AddLast((group, 0));
+            }
+
+            Opcode? previousOp = null;
+            while (groupStack.Count > 0)
+            {
+                (var group, var depth) = groupStack.First.Value;
+                groupStack.RemoveFirst();
+
+                var instruction = group.Instruction;
+
+                if (previousOp == Opcode.NoOperation || previousOp == Opcode.ReturnWithValue)
+                {
+                    if (instruction.Op != Opcode.Switch &&
+                        instruction.Op != Opcode.SwitchCase &&
+                        instruction.Op != Opcode.SwitchDefault)
+                    {
+                        //sb.AppendLine();
+                    }
+                }
+
+                if (instruction.LoadInfo == null)
+                {
+                    sb.Append($"  (@0x?????? ????) @????");
+                }
+                else
+                {
+                    var loadInfo = instruction.LoadInfo.Value;
+
+                    long absolutePosition;
+                    long relativePosition;
+                    if (validate)
+                    {
+                        absolutePosition = loadInfo.BasePosition + function.LoadPosition;
+                        relativePosition = loadInfo.BasePosition - function.BodyLoadPosition;
+                    }
+                    else
+                    {
+                        absolutePosition = loadInfo.BasePosition;
+                        relativePosition = loadInfo.BasePosition - function.BodyLoadPosition;
+                    }
+
+                    sb.Append($"  (@0x{absolutePosition:X6} {relativePosition,4}) @{loadInfo.Offset,-4}");
+                }
+
+                sb.Append(" | ");
+
+                DumpInstruction(instruction, sb, depth);
+
+                foreach (var child in group.Children.Reverse<InstructionGrouper.Group>())
+                {
+                    groupStack.AddFirst((child, depth + 1));
+                }
+            }
+        }
+
+        private static void DumpInstruction(Instruction instruction, StringBuilder sb, int depth)
+        {
+            var opName = Enum.GetName(typeof(Opcode), instruction.Op) ?? (instruction.Op.ToString() + "?");
+
+            if (depth > 0)
+            {
+                sb.Append(new string(' ', depth * 2));
+            }
+
+            sb.Append($"{opName}");
+
+            if (instruction.Argument == null)
+            {
+                sb.AppendLine();
+                return;
+            }
+
+            if (instruction.Argument is string s)
+            {
+                sb.AppendLine($" \"{s}\"");
+            }
+            else if (instruction.Argument is byte[] bytes)
+            {
+                sb.Append(" bytes(");
+                sb.Append(string.Join(", ", bytes.Select(b => "0x" + b.ToString("X2")).ToArray()));
+                sb.AppendLine(")");
+            }
+            else if (instruction.Op == Opcode.Jump ||
+                instruction.Op == Opcode.JumpFalse ||
+                instruction.Op == (Opcode)41)
+            {
+                var jumpOffset = (short)instruction.Argument;
+                sb.Append($" {jumpOffset:+#;-#}");
+                if (instruction.LoadInfo.HasValue == true)
+                {
+                    sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
+                }
+                sb.AppendLine();
+            }
+            else if (instruction.Op == Opcode.Switch)
+            {
+                (var switchType, var jumpOffset) = ((NativeType, short))instruction.Argument;
+                sb.Append($" ({jumpOffset:+#;-#}");
+                if (instruction.LoadInfo.HasValue == true)
+                {
+                    sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
+                }
+                sb.AppendLine($", {switchType})");
+            }
+            else if (instruction.Op == Opcode.SwitchCase)
+            {
+                (var defaultJumpOffset, var caseJumpOffset) = ((short, short))instruction.Argument;
+                sb.Append($" (false: {defaultJumpOffset:+#;-#}");
+                if (instruction.LoadInfo.HasValue == true)
+                {
+                    sb.Append($" => {instruction.LoadInfo.Value.Offset + defaultJumpOffset}");
+                }
+                sb.Append($", true: {caseJumpOffset:+#;-#}");
+                if (instruction.LoadInfo.HasValue == true)
+                {
+                    sb.Append($" => {instruction.LoadInfo.Value.Offset + caseJumpOffset}");
+                }
+                sb.AppendLine(")");
+            }
+            else if (instruction.Op == Opcode.Call)
+            {
+                (var jumpOffset, var unknown, var functionType) = ((short, ushort, FunctionType))instruction.Argument;
+
+                sb.Append($" ({jumpOffset:+#;-#}");
+                if (instruction.LoadInfo.HasValue == true)
+                {
+                    sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
+                }
+                sb.Append($", {unknown}, {functionType})");
+
+                if (functionType.Parameters != null && functionType.Parameters.Length > 0)
+                {
+                    sb.Append($"  [parameters={functionType.Parameters.Length}]");
+                }
+
+                sb.AppendLine();
+            }
+            else if (instruction.Op == (Opcode)37)
+            {
+                (var jumpOffset, var unknown, var unknownIndex) = ((short, ushort, uint))instruction.Argument;
+
+                sb.Append($" ({jumpOffset:+#;-#}");
+                if (instruction.LoadInfo.HasValue == true)
+                {
+                    sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
+                }
+                sb.AppendLine($", {unknown}, {unknownIndex})");
+            }
+            else
+            {
+                sb.AppendLine($" {instruction.Argument}");
+            }
         }
 
         private static string GetPath(ScriptedType type)

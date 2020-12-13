@@ -81,9 +81,34 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             return (input.ReadValueU64(endian), 8);
         }
 
+        private static (object, uint) ReadValueS8(Stream input, Endian endian, ICacheTables tables)
+        {
+            return (input.ReadValueS8(), 1);
+        }
+
         private static (object, uint) ReadValueS16(Stream input, Endian endian, ICacheTables tables)
         {
             return (input.ReadValueS16(endian), 2);
+        }
+
+        private static (object, uint) ReadValueS32(Stream input, Endian endian, ICacheTables tables)
+        {
+            return (input.ReadValueS32(endian), 4);
+        }
+
+        private static (object, uint) ReadValueS64(Stream input, Endian endian, ICacheTables tables)
+        {
+            return (input.ReadValueS64(endian), 8);
+        }
+
+        private static (object, uint) ReadValueF32(Stream input, Endian endian, ICacheTables tables)
+        {
+            return (input.ReadValueF32(endian), 4);
+        }
+
+        private static (object, uint) ReadValueF64(Stream input, Endian endian, ICacheTables tables)
+        {
+            return (input.ReadValueF64(endian), 8);
         }
 
         private static (object, uint) ReadString(Stream input, Endian endian, ICacheTables tables)
@@ -92,17 +117,17 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             return (input.ReadString((int)size, true, Encoding.UTF8), 4 + size);
         }
 
-        private static (object, uint) ReadType(Stream input, Endian endian, ICacheTables tables)
-        {
-            var typeIndex = input.ReadValueU32(endian);
-            return (tables.GetType(typeIndex), 8);
-        }
-
         private static (object, uint) ReadJump(Stream input, Endian endian, ICacheTables tables)
         {
             var jumpOffset = input.ReadValueS16(endian);
-            jumpOffset += 3; // make relative to the instruction
+            jumpOffset += 1 + 2; // make relative to the instruction
             return (jumpOffset, 2);
+        }
+
+        private static (object, uint) ReadType(Stream input, Endian endian, ICacheTables tables)
+        {
+            var typeIndex = input.ReadValueU32(endian);
+            return (new ValueTuple<ScriptedType>(tables.GetType(typeIndex)), 8);
         }
 
         private static (object, uint) ReadType<T>(Stream input, Endian endian, ICacheTables tables)
@@ -110,13 +135,7 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
         {
             var typeIndex = input.ReadValueU32(endian);
             var type = tables.GetType<T>(typeIndex);
-            return (type, 8);
-        }
-
-        private static (object, uint) ReadLocal(Stream input, Endian endian, ICacheTables tables)
-        {
-            var typeIndex = input.ReadValueU32(endian);
-            return (tables.GetType<LocalType>(typeIndex), 8);
+            return (new ValueTuple<T>(type), 8);
         }
 
         private static (object, uint) ReadName(Stream input, Endian endian, ICacheTables tables)
@@ -154,12 +173,19 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             return ((enumerationType, enumeralType), 16);
         }
 
+        private static (object, uint) ReadConstruct(Stream input, Endian endian, ICacheTables tables)
+        {
+            var parameterCount = input.ReadValueU8();
+            var typeIndex = input.ReadValueU32(endian);
+            return ((parameterCount, tables.GetType<ClassType>(typeIndex)), 9);
+        }
+
         private static (object, uint) ReadCall(Stream input, Endian endian, ICacheTables tables)
         {
             var jumpOffset = input.ReadValueS16(endian);
             var unknown = input.ReadValueU16(endian);
             var typeIndex = input.ReadValueU32(endian);
-            jumpOffset += 3; // make relative to the instruction
+            jumpOffset += 1 + 2; // make relative to the instruction
             return ((jumpOffset, unknown, tables.GetType<FunctionType>(typeIndex)), 12);
         }
 
@@ -168,7 +194,7 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             var jumpOffset = input.ReadValueS16(endian);
             var unknown = input.ReadValueU16(endian);
             var unknownIndex = input.ReadValueU32(endian);
-            jumpOffset += 3; // make relative to the instruction
+            jumpOffset += 1 + 2; // make relative to the instruction
             // Clearly some sort of call, but unknownIndex is not an index into the type table.
             return ((jumpOffset, unknown, unknownIndex), 12);
         }
@@ -184,25 +210,21 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             return ((unknown0, unknown1, unknown2, unknown3, unknown4, unknown5), 19);
         }
 
-        private static (object, uint) ReadUnknown28(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadSwitch(Stream input, Endian endian, ICacheTables tables)
         {
             var typeIndex = input.ReadValueU32(endian);
-            var unknown = input.ReadValueU16(endian);
-            return ((tables.GetType<NativeType>(typeIndex), unknown), 10);
+            var jumpOffset = input.ReadValueS16(endian);
+            jumpOffset += 1 + 8 + 2; // make relative to the instruction
+            return ((tables.GetType<NativeType>(typeIndex), jumpOffset), 10);
         }
 
-        private static (object, uint) ReadUnknown29_34(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadSwitchCase(Stream input, Endian endian, ICacheTables tables)
         {
-            var unknown0 = input.ReadValueU16(endian);
-            var unknown1 = input.ReadValueU16(endian);
-            return ((unknown0, unknown1), 4);
-        }
-
-        private static (object, uint) ReadUnknown35(Stream input, Endian endian, ICacheTables tables)
-        {
-            var unknown = input.ReadValueU8();
-            var typeIndex = input.ReadValueU32(endian);
-            return ((unknown, tables.GetType<ClassType>(typeIndex)), 9);
+            var jumpOffset1 = input.ReadValueS16(endian);
+            jumpOffset1 += 1 + 2;
+            var jumpOffset2 = input.ReadValueS16(endian);
+            jumpOffset2 += 1 + 2 + 2;
+            return ((jumpOffset1, jumpOffset2), 4);
         }
 
         private static (object, uint) ReadUnknown47(Stream input, Endian endian, ICacheTables tables)
@@ -221,48 +243,48 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
         {
             _Lookup = new Dictionary<Opcode, ReadDelegate>()
             {
-                { Opcode.End, null },
+                { Opcode.NoOperation, null },
                 { (Opcode)1, null },
-                { Opcode.ResultConstantOne, null },
-                { Opcode.ResultConstantZero, null },
-                { (Opcode)4, ReadValueU8 },
-                { (Opcode)5, ReadValueU16 },
-                { (Opcode)6, ReadValueU32 },
-                { (Opcode)7, ReadValueU64 },
-                { (Opcode)8, ReadValueU8 },
-                { (Opcode)9, ReadValueU16 },
-                { (Opcode)10, ReadValueU32 },
-                { (Opcode)11, ReadValueU64 },
-                { (Opcode)12, ReadValueU32 },
-                { (Opcode)13, ReadValueU64 },
+                { Opcode.LoadConstantOne, null },
+                { Opcode.LoadConstantZero, null },
+                { Opcode.LoadInt8, ReadValueS8 },
+                { Opcode.LoadInt16, ReadValueS16 },
+                { Opcode.LoadInt32, ReadValueS32 },
+                { Opcode.LoadInt64, ReadValueS64 },
+                { Opcode.LoadUint8, ReadValueU8 },
+                { Opcode.LoadUint16, ReadValueU16 },
+                { Opcode.LoadUint32, ReadValueU32 },
+                { Opcode.LoadUint64, ReadValueU64 },
+                { Opcode.LoadFloat, ReadValueF32 },
+                { Opcode.LoadDouble, ReadValueF64 },
                 { (Opcode)14, ReadType },
-                { Opcode.EnumAssign, ReadEnumAssign },
-                { (Opcode)16, ReadString },
+                { Opcode.LoadEnumeral, ReadEnumAssign },
+                { Opcode.LoadString, ReadString },
                 { (Opcode)17, ReadName },
                 { (Opcode)18, ReadResource },
-                { Opcode.ResultConstantTrue, null },
-                { Opcode.ResultConstantFalse, null },
+                { Opcode.LoadConstantTrue, null },
+                { Opcode.LoadConstantFalse, null },
                 { (Opcode)21, ReadUnknown21 },
-                { Opcode.LocalAssign, null },
+                { Opcode.StoreRef, null },
                 { (Opcode)23, null },
-                { Opcode.LocalRef, ReadLocal },
-                { (Opcode)25, ReadType },
-                { (Opcode)26, ReadType },
+                { Opcode.RefLocal, ReadType<LocalType> },
+                { Opcode.LoadParameter, ReadType<ParameterType> },
+                { Opcode.RefProperty, ReadType<PropertyType> },
                 { (Opcode)27, null },
-                { (Opcode)28, ReadUnknown28 },
-                { (Opcode)29, ReadUnknown29_34 },
-                { (Opcode)30, null },
+                { Opcode.Switch, ReadSwitch },
+                { Opcode.SwitchCase, ReadSwitchCase },
+                { Opcode.SwitchDefault, null },
                 { Opcode.Jump, ReadJump },
                 { Opcode.JumpFalse, ReadJump },
                 { (Opcode)33, ReadValueU16 },
-                { (Opcode)34, ReadUnknown29_34 },
-                { (Opcode)35, ReadUnknown35 },
+                { (Opcode)34, ReadSwitchCase },
+                { Opcode.Construct, ReadConstruct },
                 { Opcode.Call, ReadCall },
-                { (Opcode)37, ReadUnknown37 },
-                { (Opcode)38, null },
-                { (Opcode)39, null },
-                { (Opcode)40, ReadType },
-                { (Opcode)41, ReadValueU16 },
+                { Opcode.NativeCall, ReadUnknown37 },
+                { Opcode.EndCall, null },
+                { Opcode.ReturnWithValue, null },
+                { Opcode.LoadProperty, ReadType<PropertyType> },
+                { Opcode.AsObject, ReadJump },
                 { (Opcode)42, ReadType },
                 { (Opcode)43, ReadType },
                 { (Opcode)44, ReadType },

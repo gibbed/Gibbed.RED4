@@ -33,7 +33,7 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             FunctionFlags.Unknown2 | FunctionFlags.Unknown3 |
             FunctionFlags.Unknown4 | FunctionFlags.Unknown5 |
             FunctionFlags.Unknown6 |
-            FunctionFlags.HasReturn |
+            FunctionFlags.HasReturnValue |
             FunctionFlags.Unknown8 |
             FunctionFlags.HasParameters | FunctionFlags.HasLocals |
             FunctionFlags.HasBody |
@@ -89,7 +89,7 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
 
             ScriptedType returnType;
             bool unknown50;
-            if ((flags & FunctionFlags.HasReturn) == 0)
+            if ((flags & FunctionFlags.HasReturnValue) == 0)
             {
                 returnType = null;
                 unknown50 = false;

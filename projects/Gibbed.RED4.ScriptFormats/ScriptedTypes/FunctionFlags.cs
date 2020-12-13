@@ -35,7 +35,7 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
         Unknown4 = 1u << 4,
         Unknown5 = 1u << 5,
         Unknown6 = 1u << 6,
-        HasReturn = 1u << 7,
+        HasReturnValue = 1u << 7,
         Unknown8 = 1u << 8,
         HasParameters = 1 << 9,
         HasLocals = 1 << 10,
