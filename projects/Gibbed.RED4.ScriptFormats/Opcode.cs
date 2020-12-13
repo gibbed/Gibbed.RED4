@@ -60,5 +60,7 @@ namespace Gibbed.RED4.ScriptFormats
         ReturnWithValue = 39,
         LoadProperty = 40,
         AsObject = 41,
+        CompareEqual = 42,
+        CompareNotEqual = 43,
     }
 }
