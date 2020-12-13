@@ -28,12 +28,14 @@ namespace Gibbed.RED4.ScriptFormats
     {
         private readonly Definition[] _Definitions;
         private readonly string[] _Names;
+        private readonly string[] _TweakDBIds;
         private readonly string[] _Resources;
 
-        public CacheTableReader(Definition[] definition, string[] names, string[] resources)
+        public CacheTableReader(Definition[] definition, string[] names, string[] tweakDBId, string[] resources)
         {
             this._Definitions = definition;
             this._Names = names;
+            this._TweakDBIds = tweakDBId;
             this._Resources = resources;
         }
 
@@ -75,6 +77,20 @@ namespace Gibbed.RED4.ScriptFormats
         }
 
         public uint PutName(string value)
+        {
+            throw new NotSupportedException();
+        }
+
+        public string GetTweakDBId(uint index)
+        {
+            if (index >= this._TweakDBIds.LongLength)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+            return this._TweakDBIds[index];
+        }
+
+        public uint PutTweakDBId(string value)
         {
             throw new NotSupportedException();
         }

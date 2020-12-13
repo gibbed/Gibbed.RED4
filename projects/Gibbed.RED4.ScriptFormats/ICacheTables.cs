@@ -31,6 +31,9 @@ namespace Gibbed.RED4.ScriptFormats
         string GetName(uint index);
         uint PutName(string value);
 
+        string GetTweakDBId(uint index);
+        uint PutTweakDBId(string value);
+
         string GetResource(uint index);
         uint PutResource(string value);
     }

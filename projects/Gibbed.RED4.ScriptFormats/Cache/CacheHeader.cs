@@ -38,8 +38,8 @@ namespace Gibbed.RED4.ScriptFormats.Cache
         public uint HeaderHash;
         public uint Unknown10;
         public ArrayHeader StringData;
-        public ArrayHeader TypeNameStringOffsets;
         public ArrayHeader NameStringOffsets;
+        public ArrayHeader TweakDBIdStringOffsets;
         public ArrayHeader ResourceStringOffsets;
         public ArrayHeader Definitions;
 
@@ -52,8 +52,8 @@ namespace Gibbed.RED4.ScriptFormats.Cache
             instance.HeaderHash = input.ReadValueU32(endian);
             instance.Unknown10 = input.ReadValueU32(endian);
             instance.StringData = ArrayHeader.Read(input, endian);
-            instance.TypeNameStringOffsets = ArrayHeader.Read(input, endian);
             instance.NameStringOffsets = ArrayHeader.Read(input, endian);
+            instance.TweakDBIdStringOffsets = ArrayHeader.Read(input, endian);
             instance.ResourceStringOffsets = ArrayHeader.Read(input, endian);
             instance.Definitions = ArrayHeader.Read(input, endian);
             return instance;

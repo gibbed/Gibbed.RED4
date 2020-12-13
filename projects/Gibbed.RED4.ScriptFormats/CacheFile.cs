@@ -66,11 +66,11 @@ namespace Gibbed.RED4.ScriptFormats
             }
 
             var stringBytes = LoadArrayBytes(input, header.StringData, 1, validate);
-            string[] definitionNames, names, resources;
+            string[] names, tweakDBIds, resources;
             using (var data = new MemoryStream(stringBytes, false))
             {
-                definitionNames = LoadStrings(input, header.TypeNameStringOffsets, validate, data, endian);
                 names = LoadStrings(input, header.NameStringOffsets, validate, data, endian);
+                tweakDBIds = LoadStrings(input, header.TweakDBIdStringOffsets, validate, data, endian);
                 resources = LoadStrings(input, header.ResourceStringOffsets, validate, data, endian);
             }
 
@@ -85,9 +85,9 @@ namespace Gibbed.RED4.ScriptFormats
                 var definitionHeader = definitionHeaders[i];
                 var definition = definitions[i];
                 definition.Parent = definitions[definitionHeader.ParentIndex];
-                definition.Name = definitionNames[definitionHeader.NameIndex];
+                definition.Name = names[definitionHeader.NameIndex];
             }
-            var tableReader = new CacheTableReader(definitions, names, resources);
+            var tableReader = new CacheTableReader(definitions, names, tweakDBIds, resources);
             for (int i = 1; i < definitionHeaders.Length; i++)
             {
                 var definitionHeader = definitionHeaders[i];

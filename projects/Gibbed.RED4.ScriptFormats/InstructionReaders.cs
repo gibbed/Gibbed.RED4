@@ -141,13 +141,19 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         private static (object, uint) ReadName(Stream input, Endian endian, ICacheTables tables)
         {
             var nameIndex = input.ReadValueU32(endian);
-            return (("<name>", tables.GetName(nameIndex)), 8);
+            return (tables.GetName(nameIndex), 8);
+        }
+
+        private static (object, uint) ReadTweakDBId(Stream input, Endian endian, ICacheTables tables)
+        {
+            var tweakDBIdIndex = input.ReadValueU32(endian);
+            return (tables.GetTweakDBId(tweakDBIdIndex), 8);
         }
 
         private static (object, uint) ReadResource(Stream input, Endian endian, ICacheTables tables)
         {
             var resourceIndex = input.ReadValueU32(endian);
-            return (("<resource>", tables.GetResource(resourceIndex)), 8);
+            return (tables.GetResource(resourceIndex), 8);
         }
 
         private static (object, uint) ReadNativeWithU8(Stream input, Endian endian, ICacheTables tables)
@@ -257,11 +263,11 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 { Opcode.LoadUint64, ReadValueU64 },
                 { Opcode.LoadFloat, ReadValueF32 },
                 { Opcode.LoadDouble, ReadValueF64 },
-                { (Opcode)14, ReadType },
+                { Opcode.LoadName, ReadName },
                 { Opcode.LoadEnumeral, ReadEnumAssign },
                 { Opcode.LoadString, ReadString },
-                { (Opcode)17, ReadName },
-                { (Opcode)18, ReadResource },
+                { Opcode.LoadTweakDBId, ReadTweakDBId },
+                { Opcode.LoadResource, ReadResource },
                 { Opcode.LoadConstantTrue, null },
                 { Opcode.LoadConstantFalse, null },
                 { (Opcode)21, ReadUnknown21 },
