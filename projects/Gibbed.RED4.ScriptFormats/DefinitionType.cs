@@ -20,12 +20,19 @@
  *    distribution.
  */
 
-namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
+namespace Gibbed.RED4.ScriptFormats
 {
-    public enum Visibility : byte
+    public enum DefinitionType : byte
     {
-        Public = 0,
-        Protected = 1,
-        Private = 2,
+        Native = 0,
+        Class = 1,
+        Enumeral = 2,
+        Enumeration = 3,
+        Bitfield = 4,
+        Function = 5,
+        Parameter = 6,
+        Local = 7,
+        Property = 8,
+        ScriptFile = 9,
     }
 }

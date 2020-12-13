@@ -24,15 +24,13 @@ using System;
 using System.IO;
 using Gibbed.IO;
 
-namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
+namespace Gibbed.RED4.ScriptFormats.Definitions
 {
-    public class NativeType : ScriptedType
+    public class EnumeralDefinition : Definition
     {
-        public override ScriptedTypeType Type => ScriptedTypeType.Native;
+        public ulong Value { get; set; }
 
-        public byte Unknown24 { get; set; }
-        public ScriptedType Unknown18 { get; set; }
-        public uint Unknown20 { get; set; }
+        public override DefinitionType DefinitionType => DefinitionType.Enumeral;
 
         internal override void Serialize(Stream output, Endian endian, ICacheTables tables)
         {
@@ -41,23 +39,7 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
 
         internal override void Deserialize(Stream input, Endian endian, ICacheTables tables)
         {
-            var unknown24 = input.ReadValueU8();
-            ScriptedType unknown18;
-            if (unknown24 >= 2 && unknown24 <= 6)
-            {
-                var unknown18Index = input.ReadValueU32(endian);
-                unknown18 = tables.GetType(unknown18Index);
-            }
-            else
-            {
-                unknown18 = null;
-            }
-            var unknown20 = unknown24 == 5
-                ? input.ReadValueU32(endian)
-                : 0;
-            this.Unknown24 = unknown24;
-            this.Unknown18 = unknown18;
-            this.Unknown20 = unknown20;
+            this.Value = input.ReadValueU64(endian);
         }
     }
 }

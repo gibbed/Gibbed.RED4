@@ -41,7 +41,7 @@ namespace Gibbed.RED4.ScriptFormats.Cache
         public ArrayHeader TypeNameStringOffsets;
         public ArrayHeader NameStringOffsets;
         public ArrayHeader ResourceStringOffsets;
-        public ArrayHeader ScriptedTypes;
+        public ArrayHeader Definitions;
 
         public static CacheHeader Read(Stream input, Endian endian)
         {
@@ -55,7 +55,7 @@ namespace Gibbed.RED4.ScriptFormats.Cache
             instance.TypeNameStringOffsets = ArrayHeader.Read(input, endian);
             instance.NameStringOffsets = ArrayHeader.Read(input, endian);
             instance.ResourceStringOffsets = ArrayHeader.Read(input, endian);
-            instance.ScriptedTypes = ArrayHeader.Read(input, endian);
+            instance.Definitions = ArrayHeader.Read(input, endian);
             return instance;
         }
 

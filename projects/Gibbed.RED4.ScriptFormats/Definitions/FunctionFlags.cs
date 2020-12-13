@@ -22,7 +22,7 @@
 
 using System;
 
-namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
+namespace Gibbed.RED4.ScriptFormats.Definitions
 {
     [Flags]
     public enum FunctionFlags : uint

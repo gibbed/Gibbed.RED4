@@ -26,7 +26,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Gibbed.RED4.ScriptFormats;
-using Gibbed.RED4.ScriptFormats.ScriptedTypes;
+using Gibbed.RED4.ScriptFormats.Definitions;
 
 namespace ScriptCacheDumpTest
 {
@@ -44,10 +44,10 @@ namespace ScriptCacheDumpTest
             }
 
             string currentSourcePath = null;
-            FunctionType previousFunction = null;
+            FunctionDefinition previousFunction = null;
             var sb = new StringBuilder();
-            foreach (var function in scriptCacheFile.Types
-                .OfType<FunctionType>()
+            foreach (var function in scriptCacheFile.Definitions
+                .OfType<FunctionDefinition>()
                 .Where(t => t.Flags.HasFlag(FunctionFlags.HasBody))
                 .OrderBy(f => f.SourceFile?.Path)
                 .ThenBy(f => f.SourceLine))
@@ -77,7 +77,7 @@ namespace ScriptCacheDumpTest
             File.WriteAllText("test_function_dump.txt", sb.ToString(), Encoding.UTF8);
         }
 
-        private static void DumpFunction(FunctionType function, StringBuilder sb, bool validate)
+        private static void DumpFunction(FunctionDefinition function, StringBuilder sb, bool validate)
         {
             if (function.ReturnType == null)
             {
@@ -99,14 +99,14 @@ namespace ScriptCacheDumpTest
             {
                 foreach (var parameter in function.Parameters)
                 {
-                    sb.AppendLine($"  // {parameter} : {parameter.Unknown20}");
+                    sb.AppendLine($"  // {parameter} : {parameter.Type}");
                 }
             }
             if (function.Locals != null)
             {
                 foreach (var local in function.Locals)
                 {
-                    sb.AppendLine($"  // {local} : {local.Unknown20}");
+                    sb.AppendLine($"  // {local} : {local.Type}");
                 }
             }
 
@@ -212,7 +212,7 @@ namespace ScriptCacheDumpTest
             }
             else if (instruction.Op == Opcode.Switch)
             {
-                (var switchType, var jumpOffset) = ((NativeType, short))instruction.Argument;
+                (var switchType, var jumpOffset) = ((NativeDefinition, short))instruction.Argument;
                 sb.Append($" ({jumpOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
                 {
@@ -237,7 +237,7 @@ namespace ScriptCacheDumpTest
             }
             else if (instruction.Op == Opcode.Call)
             {
-                (var jumpOffset, var unknown, var functionType) = ((short, ushort, FunctionType))instruction.Argument;
+                (var jumpOffset, var unknown, var functionType) = ((short, ushort, FunctionDefinition))instruction.Argument;
 
                 sb.Append($" ({jumpOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
@@ -270,13 +270,13 @@ namespace ScriptCacheDumpTest
             }
         }
 
-        private static string GetPath(ScriptedType type)
+        private static string GetPath(Definition type)
         {
             if (type == null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
-            var types = new List<ScriptedType>();
+            var types = new List<Definition>();
             while (type != null)
             {
                 types.Insert(0, type);

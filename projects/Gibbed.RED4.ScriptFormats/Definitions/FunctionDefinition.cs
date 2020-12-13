@@ -24,9 +24,9 @@ using System;
 using System.IO;
 using Gibbed.IO;
 
-namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
+namespace Gibbed.RED4.ScriptFormats.Definitions
 {
-    public class FunctionType : ScriptedType
+    public class FunctionDefinition : Definition
     {
         private static readonly FunctionFlags KnownFlags =
             FunctionFlags.Unknown0 | FunctionFlags.Unknown1 |
@@ -41,17 +41,17 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             FunctionFlags.IsConstant | FunctionFlags.Unknown19 |
             FunctionFlags.Unknown20 | FunctionFlags.Unknown21;
 
-        public override ScriptedTypeType Type => ScriptedTypeType.Function;
+        public override DefinitionType DefinitionType => DefinitionType.Function;
 
         public Visibility Visibility { get; set; }
         public FunctionFlags Flags { get; set; }
-        public ScriptFile SourceFile { get; set; }
+        public ScriptFileDefinition SourceFile { get; set; }
         public uint SourceLine { get; set; }
-        public ScriptedType ReturnType { get; set; }
+        public Definition ReturnType { get; set; }
         public bool Unknown50 { get; set; }
-        public ScriptedType Unknown58 { get; set; }
-        public ParameterType[] Parameters { get; set; }
-        public LocalType[] Locals { get; set; }
+        public Definition Unknown58 { get; set; }
+        public ParameterDefinition[] Parameters { get; set; }
+        public LocalDefinition[] Locals { get; set; }
         public uint Unknown98 { get; set; }
         public byte UnknownA0 { get; set; }
         public long BodyLoadPosition { get; internal set; }
@@ -73,12 +73,12 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
                 throw new FormatException();
             }
 
-            ScriptFile scriptFile;
+            ScriptFileDefinition scriptFile;
             uint unknownC0;
             if ((flags & FunctionFlags.Unknown4) == 0)
             {
                 var scriptFileIndex = input.ReadValueU32(endian);
-                scriptFile = tables.GetType<ScriptFile>(scriptFileIndex);
+                scriptFile = tables.GetDefinition<ScriptFileDefinition>(scriptFileIndex);
                 unknownC0 = input.ReadValueU32(endian);
             }
             else
@@ -87,7 +87,7 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
                 unknownC0 = 0;
             }
 
-            ScriptedType returnType;
+            Definition returnType;
             bool unknown50;
             if ((flags & FunctionFlags.HasReturnValue) == 0)
             {
@@ -97,11 +97,11 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             else
             {
                 var returnTypeIndex = input.ReadValueU32(endian);
-                returnType = tables.GetType(returnTypeIndex);
+                returnType = tables.GetDefinition(returnTypeIndex);
                 unknown50 = input.ReadValueB8();
             }
 
-            ScriptedType unknown58;
+            Definition unknown58;
             if ((flags & FunctionFlags.Unknown8) == 0)
             {
                 unknown58 = null;
@@ -109,27 +109,27 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             else
             {
                 var unknown58Index = input.ReadValueU32(endian);
-                unknown58 = tables.GetType(unknown58Index);
+                unknown58 = tables.GetDefinition(unknown58Index);
             }
 
-            ParameterType[] parameters;
+            ParameterDefinition[] parameters;
             if ((flags & FunctionFlags.HasParameters) == 0)
             {
                 parameters = null;
             }
             else
             {
-                parameters = ReadTypeArray<ParameterType>(input, endian, tables);
+                parameters = ReadDefinitionArray<ParameterDefinition>(input, endian, tables);
             }
 
-            LocalType[] locals;
+            LocalDefinition[] locals;
             if ((flags & FunctionFlags.HasLocals) == 0)
             {
                 locals = null;
             }
             else
             {
-                locals = ReadTypeArray<LocalType>(input, endian, tables);
+                locals = ReadDefinitionArray<LocalDefinition>(input, endian, tables);
             }
 
             uint unknown98 = (flags & FunctionFlags.Unknown6) != 0
@@ -139,7 +139,7 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
                 ? input.ReadValueU8()
                 : default;
 
-            long bytecodePosition = -1;
+            long bodyPosition = -1;
             Instruction[] instructions;
             if ((flags & FunctionFlags.HasBody) == 0)
             {
@@ -147,9 +147,9 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             }
             else
             {
-                var bytecodeSize = input.ReadValueU32(endian);
-                bytecodePosition = input.Position;
-                instructions = Instructions.Read(input, bytecodeSize, endian, tables);
+                var bodySize = input.ReadValueU32(endian);
+                bodyPosition = input.Position;
+                instructions = Instructions.Read(input, bodySize, endian, tables);
             }
 
             this.Visibility = visibility;
@@ -163,7 +163,7 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             this.Locals = locals;
             this.Unknown98 = unknown98;
             this.UnknownA0 = unknownA0;
-            this.BodyLoadPosition = bytecodePosition;
+            this.BodyLoadPosition = bodyPosition;
             this.Body = instructions;
         }
     }

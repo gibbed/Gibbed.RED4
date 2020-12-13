@@ -27,7 +27,7 @@ using Gibbed.IO;
 
 namespace Gibbed.RED4.ScriptFormats.Cache
 {
-    internal struct ScriptedTypeHeader
+    internal struct DefinitionHeader
     {
         public const int Size = 20;
 
@@ -35,28 +35,28 @@ namespace Gibbed.RED4.ScriptFormats.Cache
         public uint ParentIndex;
         public uint DataOffset;
         public uint DataSize;
-        public ScriptedTypeType Type;
+        public DefinitionType Type;
 
         // TODO(gibbed): maybe uninitialized data? padding?
         public byte Unknown11;
         public byte Unknown12;
         public byte Unknown13;
 
-        public static ScriptedTypeHeader Read(Stream input, Endian endian)
+        public static DefinitionHeader Read(Stream input, Endian endian)
         {
-            ScriptedTypeHeader instance;
+            DefinitionHeader instance;
             instance.NameIndex = input.ReadValueU32(endian);
             instance.ParentIndex = input.ReadValueU32(endian);
             instance.DataOffset = input.ReadValueU32(endian);
             instance.DataSize = input.ReadValueU32(endian);
-            instance.Type = (ScriptedTypeType)input.ReadValueU8();
+            instance.Type = (DefinitionType)input.ReadValueU8();
             instance.Unknown11 = input.ReadValueU8();
             instance.Unknown12 = input.ReadValueU8();
             instance.Unknown13 = input.ReadValueU8();
             return instance;
         }
 
-        public static void Write(Stream output, ScriptedTypeHeader instance, Endian endian)
+        public static void Write(Stream output, DefinitionHeader instance, Endian endian)
         {
             throw new NotImplementedException();
         }
@@ -75,7 +75,7 @@ namespace Gibbed.RED4.ScriptFormats.Cache
             {
                 sb.Append($"parent={this.ParentIndex} ");
             }
-            sb.Append(Enum.IsDefined(typeof(ScriptedTypeType), this.Type) == true
+            sb.Append(Enum.IsDefined(typeof(DefinitionType), this.Type) == true
                 ? $"type={this.Type} "
                 : $"type=unknown({this.Type}) ");
             if (this.NameIndex > 0)

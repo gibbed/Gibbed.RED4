@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.IO;
 using Gibbed.IO;
 
-namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
+namespace Gibbed.RED4.ScriptFormats.Definitions
 {
     internal static class Instructions
     {

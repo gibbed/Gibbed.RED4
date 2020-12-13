@@ -25,11 +25,11 @@ using System.Collections.Generic;
 
 namespace Gibbed.RED4.ScriptFormats
 {
-    public static class ScriptedTypeFactory
+    public static class DefinitionFactory
     {
-        public static ScriptedType Create(ScriptedTypeType type)
+        public static Definition Create(DefinitionType type)
         {
-            ScriptedType instance;
+            Definition instance;
             if (_Lookup.TryGetValue(type, out var func) == false)
             {
                 instance = null;
@@ -45,22 +45,22 @@ namespace Gibbed.RED4.ScriptFormats
             return instance;
         }
 
-        static ScriptedTypeFactory()
+        static DefinitionFactory()
         {
-            _Lookup = new Dictionary<ScriptedTypeType, Func<ScriptedType>>()
+            _Lookup = new Dictionary<DefinitionType, Func<Definition>>()
             {
-                { ScriptedTypeType.Native, () => new ScriptedTypes.NativeType() },
-                { ScriptedTypeType.Class, () => new ScriptedTypes.ClassType() },
-                { ScriptedTypeType.Enumeral, () => new ScriptedTypes.EnumeralType() },
-                { ScriptedTypeType.Enumeration, () => new ScriptedTypes.EnumerationType() },
-                { ScriptedTypeType.Function, () => new ScriptedTypes.FunctionType() },
-                { ScriptedTypeType.Parameter, () => new ScriptedTypes.ParameterType() },
-                { ScriptedTypeType.Local, () => new ScriptedTypes.LocalType() },
-                { ScriptedTypeType.Property, () => new ScriptedTypes.PropertyType() },
-                { ScriptedTypeType.ScriptFile, () => new ScriptedTypes.ScriptFile() },
+                { DefinitionType.Native, () => new Definitions.NativeDefinition() },
+                { DefinitionType.Class, () => new Definitions.ClassDefinition() },
+                { DefinitionType.Enumeral, () => new Definitions.EnumeralDefinition() },
+                { DefinitionType.Enumeration, () => new Definitions.EnumerationDefinition() },
+                { DefinitionType.Function, () => new Definitions.FunctionDefinition() },
+                { DefinitionType.Parameter, () => new Definitions.ParameterDefinition() },
+                { DefinitionType.Local, () => new Definitions.LocalDefinition() },
+                { DefinitionType.Property, () => new Definitions.PropertyDefinition() },
+                { DefinitionType.ScriptFile, () => new Definitions.ScriptFileDefinition() },
             };
         }
 
-        private static readonly Dictionary<ScriptedTypeType, Func<ScriptedType>> _Lookup;
+        private static readonly Dictionary<DefinitionType, Func<Definition>> _Lookup;
     }
 }

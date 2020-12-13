@@ -20,7 +20,7 @@
  *    distribution.
  */
 
-namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
+namespace Gibbed.RED4.ScriptFormats.Definitions
 {
     public struct Instruction
     {

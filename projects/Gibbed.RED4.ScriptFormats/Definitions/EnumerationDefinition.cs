@@ -25,21 +25,21 @@ using System.Collections.Generic;
 using System.IO;
 using Gibbed.IO;
 
-namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
+namespace Gibbed.RED4.ScriptFormats.Definitions
 {
-    public class EnumerationType : ScriptedType
+    public class EnumerationDefinition : Definition
     {
         public byte Unknown2A { get; set; }
         public byte Size { get; set; }
-        public List<EnumeralType> Enumerals { get; }
+        public List<EnumeralDefinition> Enumerals { get; }
         public bool Unknown29 { get; set; }
 
-        public EnumerationType()
+        public EnumerationDefinition()
         {
-            this.Enumerals = new List<EnumeralType>();
+            this.Enumerals = new List<EnumeralDefinition>();
         }
 
-        public override ScriptedTypeType Type => ScriptedTypeType.Enumeration;
+        public override DefinitionType DefinitionType => DefinitionType.Enumeration;
 
         internal override void Serialize(Stream output, Endian endian, ICacheTables tables)
         {
@@ -52,11 +52,11 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             var unknown2A = input.ReadValueU8();
             var size = input.ReadValueU8();
             var enumeralCount = input.ReadValueU32(endian);
-            var enumerals = new EnumeralType[enumeralCount];
+            var enumerals = new EnumeralDefinition[enumeralCount];
             for (uint i = 0; i < enumeralCount; i++)
             {
                 var enumeralIndex = input.ReadValueU32(endian);
-                enumerals[i] = tables.GetType<EnumeralType>(enumeralIndex);
+                enumerals[i] = tables.GetDefinition<EnumeralDefinition>(enumeralIndex);
             }
             var unknown29 = input.ReadValueB8();
 

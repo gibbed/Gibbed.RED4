@@ -26,7 +26,7 @@ using System.IO;
 using System.Text;
 using Gibbed.IO;
 
-namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
+namespace Gibbed.RED4.ScriptFormats.Definitions
 {
     internal static class InstructionReaders
     {
@@ -126,15 +126,15 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
 
         private static (object, uint) ReadType(Stream input, Endian endian, ICacheTables tables)
         {
-            var typeIndex = input.ReadValueU32(endian);
-            return (new ValueTuple<ScriptedType>(tables.GetType(typeIndex)), 8);
+            var definitionIndex = input.ReadValueU32(endian);
+            return (new ValueTuple<Definition>(tables.GetDefinition(definitionIndex)), 8);
         }
 
         private static (object, uint) ReadType<T>(Stream input, Endian endian, ICacheTables tables)
-            where T: ScriptedType
+            where T: Definition
         {
-            var typeIndex = input.ReadValueU32(endian);
-            var type = tables.GetType<T>(typeIndex);
+            var definitionIndex = input.ReadValueU32(endian);
+            var type = tables.GetDefinition<T>(definitionIndex);
             return (new ValueTuple<T>(type), 8);
         }
 
@@ -152,41 +152,41 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
 
         private static (object, uint) ReadNativeWithU8(Stream input, Endian endian, ICacheTables tables)
         {
-            var typeIndex = input.ReadValueU32(endian);
+            var definitionIndex = input.ReadValueU32(endian);
             var unknown = input.ReadValueU8();
-            return ((tables.GetType<NativeType>(typeIndex), unknown), 9);
+            return ((tables.GetDefinition<NativeDefinition>(definitionIndex), unknown), 9);
         }
 
         private static (object, uint) ReadClassWithU8(Stream input, Endian endian, ICacheTables tables)
         {
-            var typeIndex = input.ReadValueU32(endian);
+            var definitionIndex = input.ReadValueU32(endian);
             var unknown = input.ReadValueU8();
-            return ((tables.GetType<ClassType>(typeIndex), unknown), 9);
+            return ((tables.GetDefinition<ClassDefinition>(definitionIndex), unknown), 9);
         }
 
         private static (object, uint) ReadEnumAssign(Stream input, Endian endian, ICacheTables tables)
         {
-            var enumerationTypeIndex = input.ReadValueU32(endian);
-            var enumerationType = tables.GetType<EnumerationType>(enumerationTypeIndex);
-            var enumeralTypeIndex = input.ReadValueU32(endian);
-            var enumeralType = tables.GetType<EnumeralType>(enumeralTypeIndex);
-            return ((enumerationType, enumeralType), 16);
+            var enumerationIndex = input.ReadValueU32(endian);
+            var enumeration = tables.GetDefinition<EnumerationDefinition>(enumerationIndex);
+            var enumeralIndex = input.ReadValueU32(endian);
+            var enumeral = tables.GetDefinition<EnumeralDefinition>(enumeralIndex);
+            return ((enumeration, enumeral), 16);
         }
 
         private static (object, uint) ReadConstruct(Stream input, Endian endian, ICacheTables tables)
         {
             var parameterCount = input.ReadValueU8();
-            var typeIndex = input.ReadValueU32(endian);
-            return ((parameterCount, tables.GetType<ClassType>(typeIndex)), 9);
+            var definitionIndex = input.ReadValueU32(endian);
+            return ((parameterCount, tables.GetDefinition<ClassDefinition>(definitionIndex)), 9);
         }
 
         private static (object, uint) ReadCall(Stream input, Endian endian, ICacheTables tables)
         {
             var jumpOffset = input.ReadValueS16(endian);
             var unknown = input.ReadValueU16(endian);
-            var typeIndex = input.ReadValueU32(endian);
+            var definitionIndex = input.ReadValueU32(endian);
             jumpOffset += 1 + 2; // make relative to the instruction
-            return ((jumpOffset, unknown, tables.GetType<FunctionType>(typeIndex)), 12);
+            return ((jumpOffset, unknown, tables.GetDefinition<FunctionDefinition>(definitionIndex)), 12);
         }
 
         private static (object, uint) ReadUnknown37(Stream input, Endian endian, ICacheTables tables)
@@ -212,10 +212,10 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
 
         private static (object, uint) ReadSwitch(Stream input, Endian endian, ICacheTables tables)
         {
-            var typeIndex = input.ReadValueU32(endian);
+            var definitionIndex = input.ReadValueU32(endian);
             var jumpOffset = input.ReadValueS16(endian);
             jumpOffset += 1 + 8 + 2; // make relative to the instruction
-            return ((tables.GetType<NativeType>(typeIndex), jumpOffset), 10);
+            return ((tables.GetDefinition<NativeDefinition>(definitionIndex), jumpOffset), 10);
         }
 
         private static (object, uint) ReadSwitchCase(Stream input, Endian endian, ICacheTables tables)
@@ -267,9 +267,9 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
                 { (Opcode)21, ReadUnknown21 },
                 { Opcode.StoreRef, null },
                 { (Opcode)23, null },
-                { Opcode.RefLocal, ReadType<LocalType> },
-                { Opcode.LoadParameter, ReadType<ParameterType> },
-                { Opcode.RefProperty, ReadType<PropertyType> },
+                { Opcode.RefLocal, ReadType<LocalDefinition> },
+                { Opcode.LoadParameter, ReadType<ParameterDefinition> },
+                { Opcode.RefProperty, ReadType<PropertyDefinition> },
                 { (Opcode)27, null },
                 { Opcode.Switch, ReadSwitch },
                 { Opcode.SwitchCase, ReadSwitchCase },
@@ -283,7 +283,7 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
                 { Opcode.NativeCall, ReadUnknown37 },
                 { Opcode.EndCall, null },
                 { Opcode.ReturnWithValue, null },
-                { Opcode.LoadProperty, ReadType<PropertyType> },
+                { Opcode.LoadProperty, ReadType<PropertyDefinition> },
                 { Opcode.AsObject, ReadJump },
                 { (Opcode)42, ReadType },
                 { (Opcode)43, ReadType },
@@ -291,46 +291,46 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
                 { (Opcode)45, null },
                 { (Opcode)46, null },
                 { (Opcode)47, ReadUnknown47 },
-                { (Opcode)48, ReadType<NativeType> },
-                { (Opcode)49, ReadType<NativeType> },
-                { (Opcode)50, ReadType<NativeType> },
-                { (Opcode)51, ReadType<NativeType> },
-                { (Opcode)52, ReadType<NativeType> },
-                { (Opcode)53, ReadType<NativeType> },
-                { (Opcode)54, ReadType<NativeType> },
-                { (Opcode)55, ReadType<NativeType> },
-                { (Opcode)56, ReadType<NativeType> },
-                { (Opcode)57, ReadType<NativeType> },
-                { (Opcode)58, ReadType<NativeType> },
-                { (Opcode)59, ReadType<NativeType> },
-                { (Opcode)60, ReadType<NativeType> },
-                { (Opcode)61, ReadType<NativeType> },
-                { (Opcode)62, ReadType<NativeType> },
-                { (Opcode)63, ReadType<NativeType> },
-                { (Opcode)64, ReadType<NativeType> },
-                { (Opcode)65, ReadType<NativeType> },
-                { (Opcode)66, ReadType<NativeType> },
-                { (Opcode)67, ReadType<NativeType> },
-                { (Opcode)68, ReadType<NativeType> },
-                { (Opcode)69, ReadType<NativeType> },
-                { (Opcode)70, ReadType<NativeType> },
-                { (Opcode)71, ReadType<NativeType> },
-                { (Opcode)72, ReadType<NativeType> },
-                { (Opcode)73, ReadType<NativeType> },
-                { (Opcode)74, ReadType<NativeType> },
-                { (Opcode)75, ReadType<NativeType> },
-                { (Opcode)76, ReadType<NativeType> },
-                { (Opcode)77, ReadType<NativeType> },
-                { (Opcode)78, ReadType<NativeType> },
-                { (Opcode)79, ReadType<NativeType> },
+                { (Opcode)48, ReadType<NativeDefinition> },
+                { (Opcode)49, ReadType<NativeDefinition> },
+                { (Opcode)50, ReadType<NativeDefinition> },
+                { (Opcode)51, ReadType<NativeDefinition> },
+                { (Opcode)52, ReadType<NativeDefinition> },
+                { (Opcode)53, ReadType<NativeDefinition> },
+                { (Opcode)54, ReadType<NativeDefinition> },
+                { (Opcode)55, ReadType<NativeDefinition> },
+                { (Opcode)56, ReadType<NativeDefinition> },
+                { (Opcode)57, ReadType<NativeDefinition> },
+                { (Opcode)58, ReadType<NativeDefinition> },
+                { (Opcode)59, ReadType<NativeDefinition> },
+                { (Opcode)60, ReadType<NativeDefinition> },
+                { (Opcode)61, ReadType<NativeDefinition> },
+                { (Opcode)62, ReadType<NativeDefinition> },
+                { (Opcode)63, ReadType<NativeDefinition> },
+                { (Opcode)64, ReadType<NativeDefinition> },
+                { (Opcode)65, ReadType<NativeDefinition> },
+                { (Opcode)66, ReadType<NativeDefinition> },
+                { (Opcode)67, ReadType<NativeDefinition> },
+                { (Opcode)68, ReadType<NativeDefinition> },
+                { (Opcode)69, ReadType<NativeDefinition> },
+                { (Opcode)70, ReadType<NativeDefinition> },
+                { (Opcode)71, ReadType<NativeDefinition> },
+                { (Opcode)72, ReadType<NativeDefinition> },
+                { (Opcode)73, ReadType<NativeDefinition> },
+                { (Opcode)74, ReadType<NativeDefinition> },
+                { (Opcode)75, ReadType<NativeDefinition> },
+                { (Opcode)76, ReadType<NativeDefinition> },
+                { (Opcode)77, ReadType<NativeDefinition> },
+                { (Opcode)78, ReadType<NativeDefinition> },
+                { (Opcode)79, ReadType<NativeDefinition> },
                 { (Opcode)80, null },
                 { (Opcode)81, null },
                 { (Opcode)82, ReadNativeWithU8 },
                 { (Opcode)83, ReadNativeWithU8 },
                 { (Opcode)84, ReadClassWithU8 },
-                { (Opcode)85, ReadType<NativeType> },
-                { (Opcode)86, ReadType<NativeType> },
-                { (Opcode)87, ReadType<NativeType> },
+                { (Opcode)85, ReadType<NativeDefinition> },
+                { (Opcode)86, ReadType<NativeDefinition> },
+                { (Opcode)87, ReadType<NativeDefinition> },
                 { (Opcode)88, null },
                 { (Opcode)89, null },
                 { (Opcode)90, null },
@@ -339,8 +339,8 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
                 { (Opcode)93, null },
                 { (Opcode)94, null },
                 { (Opcode)95, null },
-                { (Opcode)96, ReadType<NativeType> },
-                { (Opcode)97, ReadType<NativeType> },
+                { (Opcode)96, ReadType<NativeDefinition> },
+                { (Opcode)97, ReadType<NativeDefinition> },
                 { (Opcode)98, null },
             };
         }

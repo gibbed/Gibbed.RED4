@@ -24,9 +24,9 @@ using System;
 using System.IO;
 using Gibbed.IO;
 
-namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
+namespace Gibbed.RED4.ScriptFormats.Definitions
 {
-    public class ClassType : ScriptedType
+    public class ClassDefinition : Definition
     {
         private static readonly ClassFlags KnownFlags =
             ClassFlags.Unknown0 | ClassFlags.IsAbstract |
@@ -34,7 +34,7 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             ClassFlags.HasFunctions | ClassFlags.Unknown5 |
             ClassFlags.IsImportOnly | ClassFlags.Unknown8;
 
-        public override ScriptedTypeType Type => ScriptedTypeType.Enumeral;
+        public override DefinitionType DefinitionType => DefinitionType.Enumeral;
 
         internal override void Serialize(Stream output, Endian endian, ICacheTables tables)
         {
@@ -52,23 +52,23 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
                 throw new FormatException();
             }
 
-            var baseTypeIndex = input.ReadValueU32(endian);
-            var baseType = tables.GetType<ClassType>(baseTypeIndex);
+            var baseClassIndex = input.ReadValueU32(endian);
+            var baseClass = tables.GetDefinition<ClassDefinition>(baseClassIndex);
 
             var functions = (flags & ClassFlags.HasFunctions) != 0
-                ? ReadTypeArray<FunctionType>(input, endian, tables)
+                ? ReadDefinitionArray<FunctionDefinition>(input, endian, tables)
                 : null;
 
-            ScriptedType[] unknown20s;
+            Definition[] unknown20s;
             if ((flags & ClassFlags.Unknown5) != 0)
             {
-                unknown20s = ReadTypeArray<PropertyType>(input, endian, tables);
+                unknown20s = ReadDefinitionArray<PropertyDefinition>(input, endian, tables);
             }
 
-            ScriptedType[] unknown30s;
+            Definition[] unknown30s;
             if ((flags & ClassFlags.Unknown8) != 0)
             {
-                unknown30s = ReadTypeArray<PropertyType>(input, endian, tables);
+                unknown30s = ReadDefinitionArray<PropertyDefinition>(input, endian, tables);
             }
         }
     }

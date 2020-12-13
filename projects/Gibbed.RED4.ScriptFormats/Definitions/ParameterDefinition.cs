@@ -22,18 +22,16 @@
 
 using System;
 using System.IO;
-using System.Text;
 using Gibbed.IO;
 
-namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
+namespace Gibbed.RED4.ScriptFormats.Definitions
 {
-    public class ScriptFile : ScriptedType
+    public class ParameterDefinition : Definition
     {
-        public override ScriptedTypeType Type => ScriptedTypeType.ScriptFile;
+        public override DefinitionType DefinitionType => DefinitionType.Parameter;
 
-        public uint Id { get; set; }
-        public ulong PathHash { get; set; }
-        public string Path;
+        public Definition Type { get; set; }
+        public byte Unknown28 { get; set; }
 
         internal override void Serialize(Stream output, Endian endian, ICacheTables tables)
         {
@@ -42,10 +40,12 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
 
         internal override void Deserialize(Stream input, Endian endian, ICacheTables tables)
         {
-            this.Id = input.ReadValueU32(endian);
-            this.PathHash = input.ReadValueU64(endian);
-            var nameLength = input.ReadValueU16(endian);
-            this.Path = input.ReadString(nameLength, true, Encoding.UTF8);
+            var typeIndex = input.ReadValueU32(endian);
+            var type = tables.GetDefinition(typeIndex);
+            var unknown28 = input.ReadValueU8();
+
+            this.Type = type;
+            this.Unknown28 = unknown28;
         }
     }
 }

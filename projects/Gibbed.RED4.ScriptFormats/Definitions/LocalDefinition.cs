@@ -24,13 +24,13 @@ using System;
 using System.IO;
 using Gibbed.IO;
 
-namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
+namespace Gibbed.RED4.ScriptFormats.Definitions
 {
-    public class LocalType : ScriptedType
+    public class LocalDefinition : Definition
     {
-        public override ScriptedTypeType Type => ScriptedTypeType.Local;
+        public override DefinitionType DefinitionType => DefinitionType.Local;
 
-        public ScriptedType Unknown20 { get; set; }
+        public Definition Type { get; set; }
         public byte Unknown28 { get; set; }
 
         internal override void Serialize(Stream output, Endian endian, ICacheTables tables)
@@ -40,11 +40,11 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
 
         internal override void Deserialize(Stream input, Endian endian, ICacheTables tables)
         {
-            var unknown20Index = input.ReadValueU32(endian);
-            var unknown20 = tables.GetType(unknown20Index);
+            var typeIndex = input.ReadValueU32(endian);
+            var type = tables.GetDefinition(typeIndex);
             var unknown28 = input.ReadValueU8();
 
-            this.Unknown20 = unknown20;
+            this.Type = type;
             this.Unknown28 = unknown28;
         }
     }

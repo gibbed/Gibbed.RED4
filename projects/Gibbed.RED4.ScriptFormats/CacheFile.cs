@@ -31,7 +31,7 @@ namespace Gibbed.RED4.ScriptFormats
 {
     public class CacheFile
     {
-        public ScriptedType[] Types { get; set; }
+        public Definition[] Definitions { get; set; }
 
         private CacheFile()
         {
@@ -66,42 +66,42 @@ namespace Gibbed.RED4.ScriptFormats
             }
 
             var stringBytes = LoadArrayBytes(input, header.StringData, 1, validate);
-            string[] typeNames, names, resources;
+            string[] definitionNames, names, resources;
             using (var data = new MemoryStream(stringBytes, false))
             {
-                typeNames = LoadStrings(input, header.TypeNameStringOffsets, validate, data, endian);
+                definitionNames = LoadStrings(input, header.TypeNameStringOffsets, validate, data, endian);
                 names = LoadStrings(input, header.NameStringOffsets, validate, data, endian);
                 resources = LoadStrings(input, header.ResourceStringOffsets, validate, data, endian);
             }
 
-            var scriptedTypeHeaders = LoadArray(input, header.ScriptedTypes, ScriptedTypeHeader.Size, validate, ScriptedTypeHeader.Read, endian);
-            var scriptedTypes = new ScriptedType[scriptedTypeHeaders.Length];
-            for (int i = 1; i < scriptedTypeHeaders.Length; i++)
+            var definitionHeaders = LoadArray(input, header.Definitions, DefinitionHeader.Size, validate, DefinitionHeader.Read, endian);
+            var definitions = new Definition[definitionHeaders.Length];
+            for (int i = 1; i < definitionHeaders.Length; i++)
             {
-                scriptedTypes[i] = ScriptedTypeFactory.Create(scriptedTypeHeaders[i].Type);
+                definitions[i] = DefinitionFactory.Create(definitionHeaders[i].Type);
             }
-            for (int i = 1; i < scriptedTypeHeaders.Length; i++)
+            for (int i = 1; i < definitionHeaders.Length; i++)
             {
-                var scriptedTypeHeader = scriptedTypeHeaders[i];
-                var scriptedType = scriptedTypes[i];
-                scriptedType.Parent = scriptedTypes[scriptedTypeHeader.ParentIndex];
-                scriptedType.Name = typeNames[scriptedTypeHeader.NameIndex];
+                var definitionHeader = definitionHeaders[i];
+                var definition = definitions[i];
+                definition.Parent = definitions[definitionHeader.ParentIndex];
+                definition.Name = definitionNames[definitionHeader.NameIndex];
             }
-            var scriptedTypeTableReader = new CacheTableReader(scriptedTypes, names, resources);
-            for (int i = 1; i < scriptedTypeHeaders.Length; i++)
+            var tableReader = new CacheTableReader(definitions, names, resources);
+            for (int i = 1; i < definitionHeaders.Length; i++)
             {
-                var scriptedTypeHeader = scriptedTypeHeaders[i];
-                var scriptedType = scriptedTypes[i];
+                var definitionHeader = definitionHeaders[i];
+                var definition = definitions[i];
 
-                input.Position = scriptedTypeHeader.DataOffset;
+                input.Position = definitionHeader.DataOffset;
 
-                scriptedType.LoadPosition = input.Position;
+                definition.LoadPosition = input.Position;
 
                 if (validate == true)
                 {
-                    using (var data = input.ReadToMemoryStream((int)scriptedTypeHeader.DataSize))
+                    using (var data = input.ReadToMemoryStream((int)definitionHeader.DataSize))
                     {
-                        scriptedType.Deserialize(data, endian, scriptedTypeTableReader);
+                        definition.Deserialize(data, endian, tableReader);
                         if (data.Position != data.Length)
                         {
                             throw new FormatException();
@@ -110,8 +110,8 @@ namespace Gibbed.RED4.ScriptFormats
                 }
                 else
                 {
-                    var expectedPosition = input.Position + scriptedTypeHeader.DataSize;
-                    scriptedType.Deserialize(input, endian, scriptedTypeTableReader);
+                    var expectedPosition = input.Position + definitionHeader.DataSize;
+                    definition.Deserialize(input, endian, tableReader);
                     if (input.Position != expectedPosition)
                     {
                         throw new FormatException();
@@ -120,7 +120,7 @@ namespace Gibbed.RED4.ScriptFormats
             }
 
             var instance = new CacheFile();
-            instance.Types = scriptedTypes;
+            instance.Definitions = definitions;
             return instance;
         }
 

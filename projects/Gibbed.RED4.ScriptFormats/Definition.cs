@@ -25,37 +25,37 @@ using Gibbed.IO;
 
 namespace Gibbed.RED4.ScriptFormats
 {
-    public abstract class ScriptedType
+    public abstract class Definition
     {
-        public abstract ScriptedTypeType Type { get; }
-        public ScriptedType Parent { get; set; }
+        public abstract DefinitionType DefinitionType { get; }
+        public Definition Parent { get; set; }
         public string Name { get; set; }
         public long LoadPosition { get; internal set; }
 
         internal abstract void Serialize(Stream output, Endian endian, ICacheTables tables);
         internal abstract void Deserialize(Stream input, Endian endian, ICacheTables tables);
 
-        internal static ScriptedType[] ReadTypeArray(Stream input, Endian endian, ICacheTables tables)
+        internal static Definition[] ReadDefinitionArray(Stream input, Endian endian, ICacheTables tables)
         {
             var count = input.ReadValueU32(endian);
-            var items = new ScriptedType[count];
+            var items = new Definition[count];
             for (uint i = 0; i < count; i++)
             {
-                var typeIndex = input.ReadValueU32(endian);
-                items[i] = tables.GetType(typeIndex);
+                var definitionIndex = input.ReadValueU32(endian);
+                items[i] = tables.GetDefinition(definitionIndex);
             }
             return items;
         }
 
-        internal static T[] ReadTypeArray<T>(Stream input, Endian endian, ICacheTables tables)
-            where T: ScriptedType
+        internal static T[] ReadDefinitionArray<T>(Stream input, Endian endian, ICacheTables tables)
+            where T: Definition
         {
             var count = input.ReadValueU32(endian);
             var items = new T[count];
             for (uint i = 0; i < count; i++)
             {
-                var typeIndex = input.ReadValueU32(endian);
-                items[i] = tables.GetType<T>(typeIndex);
+                var definitionIndex = input.ReadValueU32(endian);
+                items[i] = tables.GetDefinition<T>(definitionIndex);
             }
             return items;
         }
@@ -64,9 +64,9 @@ namespace Gibbed.RED4.ScriptFormats
         {
             if (string.IsNullOrEmpty(this.Name) == true)
             {
-                return $"{this.Type}";
+                return $"{this.DefinitionType}";
             }
-            return $"{this.Type} {this.Name}";
+            return $"{this.DefinitionType} {this.Name}";
         }
     }
 }

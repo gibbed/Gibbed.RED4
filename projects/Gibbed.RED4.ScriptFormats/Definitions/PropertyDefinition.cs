@@ -25,11 +25,11 @@ using System.IO;
 using System.Text;
 using Gibbed.IO;
 
-namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
+namespace Gibbed.RED4.ScriptFormats.Definitions
 {
-    public class PropertyType : ScriptedType
+    public class PropertyDefinition : Definition
     {
-        public override ScriptedTypeType Type => ScriptedTypeType.Property;
+        public override DefinitionType DefinitionType => DefinitionType.Property;
 
         internal override void Serialize(Stream output, Endian endian, ICacheTables tables)
         {
@@ -41,7 +41,7 @@ namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
             var visibility = (Visibility)input.ReadValueU8();
             
             var unknown88Index = input.ReadValueU32(endian);
-            var unknown88 = tables.GetType<NativeType>(unknown88Index);
+            var unknown88 = tables.GetDefinition<NativeDefinition>(unknown88Index);
             var unknown20 = input.ReadValueU16(endian);
 
             if ((unknown20 & 0x20) != 0)

@@ -23,21 +23,21 @@
 using System;
 using System.Collections.Generic;
 using Gibbed.RED4.ScriptFormats;
-using Gibbed.RED4.ScriptFormats.ScriptedTypes;
+using Gibbed.RED4.ScriptFormats.Definitions;
 
 namespace ScriptCacheDumpTest
 {
     internal class InstructionGrouper
     {
-        private readonly FunctionType _Function;
+        private readonly FunctionDefinition _Function;
         private int _Index;
 
-        private InstructionGrouper(FunctionType function)
+        private InstructionGrouper(FunctionDefinition function)
         {
             this._Function = function;
         }
 
-        public static IEnumerable<Group> GroupBody(FunctionType function)
+        public static IEnumerable<Group> GroupBody(FunctionDefinition function)
         {
             var instance = new InstructionGrouper(function);
             foreach (var group in instance.GroupBody())
@@ -77,12 +77,12 @@ namespace ScriptCacheDumpTest
             }
             else if (instruction.Op == Opcode.Construct)
             {
-                (var parameterCount, _) = ((byte, ClassType))instruction.Argument;
+                (var parameterCount, _) = ((byte, ClassDefinition))instruction.Argument;
                 enumerable = GroupBasicInstruction(parameterCount);
             }
             else if (instruction.Op == Opcode.Call)
             {
-                (_, _, var functionType) = ((short, ushort, FunctionType))instruction.Argument;
+                (_, _, var functionType) = ((short, ushort, FunctionDefinition))instruction.Argument;
                 var parameterCount = functionType.Parameters == null
                     ? 0
                     : functionType.Parameters.Length;

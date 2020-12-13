@@ -24,9 +24,9 @@ namespace Gibbed.RED4.ScriptFormats
 {
     internal interface ICacheTables
     {
-        ScriptedType GetType(uint index);
-        T GetType<T>(uint index) where T : ScriptedType;
-        uint PutType(ScriptedType instance);
+        Definition GetDefinition(uint index);
+        T GetDefinition<T>(uint index) where T : Definition;
+        uint PutDefinition(Definition instance);
 
         string GetName(uint index);
         uint PutName(string value);

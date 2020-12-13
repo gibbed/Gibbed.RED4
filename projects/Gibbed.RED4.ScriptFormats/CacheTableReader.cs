@@ -26,29 +26,29 @@ namespace Gibbed.RED4.ScriptFormats
 {
     internal class CacheTableReader : ICacheTables
     {
-        private readonly ScriptedType[] _Types;
+        private readonly Definition[] _Definitions;
         private readonly string[] _Names;
         private readonly string[] _Resources;
 
-        public CacheTableReader(ScriptedType[] types, string[] names, string[] resources)
+        public CacheTableReader(Definition[] definition, string[] names, string[] resources)
         {
-            this._Types = types;
+            this._Definitions = definition;
             this._Names = names;
             this._Resources = resources;
         }
 
-        public ScriptedType GetType(uint index)
+        public Definition GetDefinition(uint index)
         {
-            if (index >= this._Types.LongLength)
+            if (index >= this._Definitions.LongLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
-            return this._Types[index];
+            return this._Definitions[index];
         }
 
-        public T GetType<T>(uint index) where T : ScriptedType
+        public T GetDefinition<T>(uint index) where T : Definition
         {
-            var instance = GetType(index);
+            var instance = GetDefinition(index);
             if (instance == null)
             {
                 return null;
@@ -60,7 +60,7 @@ namespace Gibbed.RED4.ScriptFormats
             throw new ArgumentException($"wanted {typeof(T).Name}, got {instance.GetType().Name}");
         }
 
-        public uint PutType(ScriptedType instance)
+        public uint PutDefinition(Definition instance)
         {
             throw new NotSupportedException();
         }

@@ -22,25 +22,11 @@
 
 using System;
 
-namespace Gibbed.RED4.ScriptFormats.ScriptedTypes
+namespace Gibbed.RED4.ScriptFormats.Definitions
 {
     [Flags]
-    public enum ClassFlags : ushort
+    public enum PropertyFlags
     {
-        None = 0,
-        Unknown0 = 1 << 0,
-        IsAbstract = 1 << 1,
-        Unknown2 = 1 << 2,
-
-        /// <summary>
-        /// Is a struct if unset.
-        /// </summary>
-        IsClass = 1 << 3,
-
-        HasFunctions = 1 << 4,
-        Unknown5 = 1 << 5,
-        IsImportOnly = 1 << 6,
-        IsTestOnly = 1 << 7,
-        Unknown8 = 1 << 8,
+        None,
     }
 }
