@@ -176,6 +176,10 @@ namespace ScriptCacheDumpTest
                 {
                     yield return group;
                 }
+                if (instruction.Op == Opcode.ReturnWithValue)
+                {
+                    yield break;
+                }
             }
         }
 
@@ -194,6 +198,10 @@ namespace ScriptCacheDumpTest
                 foreach (var group in GroupInstruction())
                 {
                     yield return group;
+                }
+                if (instruction.Op == Opcode.ReturnWithValue)
+                {
+                    yield break;
                 }
             }
         }
