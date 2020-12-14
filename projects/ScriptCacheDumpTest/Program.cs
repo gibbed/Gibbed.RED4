@@ -43,6 +43,53 @@ namespace ScriptCacheDumpTest
                 scriptCacheFile = CacheFile.Load(input, validate);
             }
 
+            DumpExecCallableFunctions(scriptCacheFile);
+            DumpFunctions(scriptCacheFile, validate);
+            DumpEnumerations(scriptCacheFile);
+        }
+
+        private static void DumpExecCallableFunctions(CacheFile scriptCacheFile)
+        {
+            var gameInstanceDefinition = scriptCacheFile.Definitions
+                            .OfType<NativeDefinition>()
+                            .Where(t => t.Name == "GameInstance")
+                            .SingleOrDefault();
+            var stringType = scriptCacheFile.Definitions
+                .OfType<NativeDefinition>()
+                .SingleOrDefault(t => t.Name == "String");
+            var candidates = scriptCacheFile.Definitions
+                .OfType<FunctionDefinition>()
+                .Where(f =>
+                    f.Parameters != null &&
+                    f.Parameters.Length >= 1 &&
+                    f.Parameters.Length <= 6 &&
+                    f.Parameters[0].Type == gameInstanceDefinition &&
+                    f.Parameters.Skip(1).All(p => p.Type == stringType))
+                .ToArray();
+            var sb = new StringBuilder();
+            foreach (var tuple in candidates
+                .Select(c => (function: c, path: GetPath(c)))
+                .Where(t => t.function.Parent == null)
+                .OrderBy(t => t.path))
+            {
+                var (function, path) = tuple;
+                sb.Append($"{path}(");
+                for (int i = 1; i < function.Parameters.Length; i++)
+                {
+                    var parameter = function.Parameters[i];
+                    if (i > 1)
+                    {
+                        sb.Append(", ");
+                    }
+                    sb.Append($"{parameter.Name}");
+                }
+                sb.AppendLine(")");
+            }
+            File.WriteAllText("exec_callable_script_functions.txt", sb.ToString());
+        }
+
+        private static void DumpFunctions(CacheFile scriptCacheFile, bool validate)
+        {
             string currentSourcePath = null;
             FunctionDefinition previousFunction = null;
             var sb = new StringBuilder();
@@ -278,6 +325,34 @@ namespace ScriptCacheDumpTest
             {
                 sb.AppendLine($" {instruction.Argument}");
             }
+        }
+
+        private static void DumpEnumerations(CacheFile scriptCacheFile)
+        {
+            EnumerationDefinition previousEnumeration = null;
+            var sb = new StringBuilder();
+            foreach (var tuple in scriptCacheFile.Definitions
+                .OfType<EnumerationDefinition>()
+                .Select(e => (enumeration: e, path: GetPath(e)))
+                .OrderBy(t => t.path))
+            {
+                var (enumeration, path) = tuple;
+
+                if (previousEnumeration != null)
+                {
+                    sb.AppendLine();
+                }
+
+                sb.AppendLine($"{path} : {enumeration.Size}");
+                foreach (var enumeral in enumeration.Enumerals)
+                {
+                    sb.AppendLine($"  {enumeral.Name} = {enumeral.Value}");
+                }
+
+                previousEnumeration = enumeration;
+            }
+
+            File.WriteAllText("test_enumeration_dump.txt", sb.ToString(), Encoding.UTF8);
         }
 
         private static string GetPath(Definition type)
