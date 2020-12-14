@@ -29,6 +29,21 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 {
     public class PropertyDefinition : Definition
     {
+        private static readonly PropertyFlags KnownFlags =
+            PropertyFlags.Unknown0 | PropertyFlags.Unknown1 |
+            PropertyFlags.Unknown2 | PropertyFlags.Unknown3 |
+            PropertyFlags.Unknown4 | PropertyFlags.Unknown5 |
+            PropertyFlags.Unknown6 | PropertyFlags.Unknown7 |
+            PropertyFlags.Unknown8 | PropertyFlags.Unknown9 |
+            PropertyFlags.Unknown10;
+
+        public Visibility Visibility { get; set; }
+        public Definition Type { get; set; }
+        public PropertyFlags Flags { get; set; }
+        public string UnknownDiscardedString { get; set; }
+        public ValueTuple<string, string>[] Unknown58s { get; set; }
+        public ValueTuple<string, string>[] Unknown38s { get; set; }
+
         public override DefinitionType DefinitionType => DefinitionType.Property;
 
         internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
@@ -40,37 +55,55 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         {
             var visibility = (Visibility)input.ReadValueU8();
             
-            var unknown88Index = input.ReadValueU32(endian);
-            var unknown88 = references.GetDefinition<NativeDefinition>(unknown88Index);
-            var unknown20 = input.ReadValueU16(endian);
+            var typeIndex = input.ReadValueU32(endian);
+            var type = references.GetDefinition<NativeDefinition>(typeIndex);
 
-            if ((unknown20 & 0x20) != 0)
+            var flags = (PropertyFlags)input.ReadValueU16(endian);
+            var unknownFlags = flags & ~KnownFlags;
+            if (unknownFlags != PropertyFlags.None)
             {
-                var somethingLength = input.ReadValueU16(endian);
-                var something = input.ReadString(somethingLength, true, Encoding.UTF8);
+                throw new FormatException();
+            }
+
+            string unknownDiscardedString;
+            if ((flags & PropertyFlags.Unknown5) == 0)
+            {
+                unknownDiscardedString = null;
+            }
+            else
+            {
+                var unknownDiscardedStringLength = input.ReadValueU16(endian);
+                unknownDiscardedString = input.ReadString(unknownDiscardedStringLength, true, Encoding.UTF8);
             }
 
             var unknown58Count = input.ReadValueU32(endian);
-            var unknown58s = new Tuple<string, string>[unknown58Count];
+            var unknown58s = new ValueTuple<string, string>[unknown58Count];
             for (uint i = 0; i < unknown58Count; i++)
             {
                 var unknown58_0Length = input.ReadValueU16(endian);
                 var unknown58_0 = input.ReadString(unknown58_0Length, true, Encoding.UTF8);
                 var unknown58_1Length = input.ReadValueU16(endian);
                 var unknown58_1 = input.ReadString(unknown58_1Length, true, Encoding.UTF8);
-                unknown58s[i] = new Tuple<string, string>(unknown58_0, unknown58_1);
+                unknown58s[i] = new ValueTuple<string, string>(unknown58_0, unknown58_1);
             }
 
             var unknown38Count = input.ReadValueU32(endian);
-            var unknown38s = new Tuple<string, string>[unknown38Count];
+            var unknown38s = new ValueTuple<string, string>[unknown38Count];
             for (uint i = 0; i < unknown38Count; i++)
             {
                 var unknown38Length = input.ReadValueU16(endian);
                 var unknown38 = input.ReadString(unknown38Length, true, Encoding.UTF8);
                 var unknown28Length = input.ReadValueU16(endian);
                 var unknown28 = input.ReadString(unknown28Length, true, Encoding.UTF8);
-                unknown38s[i] = new Tuple<string, string>(unknown38, unknown28);
+                unknown38s[i] = new ValueTuple<string, string>(unknown38, unknown28);
             }
+
+            this.Visibility = visibility;
+            this.Type = type;
+            this.Flags = flags;
+            this.UnknownDiscardedString = unknownDiscardedString;
+            this.Unknown58s = unknown58s;
+            this.Unknown38s = unknown38s;
         }
     }
 }
