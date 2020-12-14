@@ -33,6 +33,6 @@ namespace Gibbed.RED4.ScriptFormats
         Parameter = 6,
         Local = 7,
         Property = 8,
-        ScriptFile = 9,
+        SourceFile = 9,
     }
 }

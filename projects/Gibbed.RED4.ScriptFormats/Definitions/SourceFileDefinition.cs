@@ -29,7 +29,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 {
     public class SourceFileDefinition : Definition
     {
-        public override DefinitionType DefinitionType => DefinitionType.ScriptFile;
+        public override DefinitionType DefinitionType => DefinitionType.SourceFile;
 
         public uint Id { get; set; }
         public ulong PathHash { get; set; }
