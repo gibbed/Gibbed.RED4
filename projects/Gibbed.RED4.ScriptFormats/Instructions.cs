@@ -28,7 +28,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 {
     internal static class Instructions
     {
-        internal static Instruction[] Read(Stream input, uint count, Endian endian, ICacheTables tables)
+        internal static Instruction[] Read(Stream input, uint count, Endian endian, ICacheReferences references)
         {
             var result = new List<Instruction>();
             for (uint i = 0; i < count;)
@@ -36,7 +36,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 InstructionLoadInfo loadInfo;
                 loadInfo.BasePosition = input.Position;
                 loadInfo.Offset = i;
-                (var instruction, var size) = InstructionReaders.Read(input, endian, tables);
+                (var instruction, var size) = InstructionReaders.Read(input, endian, references);
                 instruction.LoadInfo = loadInfo;
                 result.Add(instruction);
                 i += size;

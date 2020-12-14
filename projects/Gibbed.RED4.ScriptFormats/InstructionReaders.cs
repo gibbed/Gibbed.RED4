@@ -33,7 +33,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         // All of these readers are completely temporary while research is on-going.
         // TODO(gibbed): concrete types for all of this.
 
-        internal static (Instruction, uint) Read(Stream input, Endian endian, ICacheTables tables)
+        internal static (Instruction, uint) Read(Stream input, Endian endian, ICacheReferences references)
         {
             uint size = 0;
 
@@ -53,7 +53,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             }
             else
             {
-                (var argument, var argumentSize) = reader(input, endian, tables);
+                (var argument, var argumentSize) = reader(input, endian, references);
                 instance.Argument = argument;
                 size += argumentSize;
             }
@@ -61,141 +61,141 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             return (instance, size);
         }
 
-        private static (object, uint) ReadValueU8(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadValueU8(Stream input, Endian endian, ICacheReferences references)
         {
             return (input.ReadValueU8(), 1);
         }
 
-        private static (object, uint) ReadValueU16(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadValueU16(Stream input, Endian endian, ICacheReferences references)
         {
             return (input.ReadValueU16(endian), 2);
         }
 
-        private static (object, uint) ReadValueU32(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadValueU32(Stream input, Endian endian, ICacheReferences references)
         {
             return (input.ReadValueU32(endian), 4);
         }
 
-        private static (object, uint) ReadValueU64(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadValueU64(Stream input, Endian endian, ICacheReferences references)
         {
             return (input.ReadValueU64(endian), 8);
         }
 
-        private static (object, uint) ReadValueS8(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadValueS8(Stream input, Endian endian, ICacheReferences references)
         {
             return (input.ReadValueS8(), 1);
         }
 
-        private static (object, uint) ReadValueS16(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadValueS16(Stream input, Endian endian, ICacheReferences references)
         {
             return (input.ReadValueS16(endian), 2);
         }
 
-        private static (object, uint) ReadValueS32(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadValueS32(Stream input, Endian endian, ICacheReferences references)
         {
             return (input.ReadValueS32(endian), 4);
         }
 
-        private static (object, uint) ReadValueS64(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadValueS64(Stream input, Endian endian, ICacheReferences references)
         {
             return (input.ReadValueS64(endian), 8);
         }
 
-        private static (object, uint) ReadValueF32(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadValueF32(Stream input, Endian endian, ICacheReferences references)
         {
             return (input.ReadValueF32(endian), 4);
         }
 
-        private static (object, uint) ReadValueF64(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadValueF64(Stream input, Endian endian, ICacheReferences references)
         {
             return (input.ReadValueF64(endian), 8);
         }
 
-        private static (object, uint) ReadString(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadString(Stream input, Endian endian, ICacheReferences references)
         {
             var size = input.ReadValueU32(endian);
             return (input.ReadString((int)size, true, Encoding.UTF8), 4 + size);
         }
 
-        private static (object, uint) ReadJump(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadJump(Stream input, Endian endian, ICacheReferences references)
         {
             var jumpOffset = input.ReadValueS16(endian);
             jumpOffset += 1 + 2; // make relative to the instruction
             return (jumpOffset, 2);
         }
 
-        private static (object, uint) ReadType(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadType(Stream input, Endian endian, ICacheReferences references)
         {
             var definitionIndex = input.ReadValueU32(endian);
-            return (new ValueTuple<Definition>(tables.GetDefinition(definitionIndex)), 8);
+            return (new ValueTuple<Definition>(references.GetDefinition(definitionIndex)), 8);
         }
 
-        private static (object, uint) ReadType<T>(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadType<T>(Stream input, Endian endian, ICacheReferences references)
             where T: Definition
         {
             var definitionIndex = input.ReadValueU32(endian);
-            var type = tables.GetDefinition<T>(definitionIndex);
+            var type = references.GetDefinition<T>(definitionIndex);
             return (new ValueTuple<T>(type), 8);
         }
 
-        private static (object, uint) ReadName(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadName(Stream input, Endian endian, ICacheReferences references)
         {
             var nameIndex = input.ReadValueU32(endian);
-            return (tables.GetName(nameIndex), 8);
+            return (references.GetName(nameIndex), 8);
         }
 
-        private static (object, uint) ReadTweakDBId(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadTweakDBId(Stream input, Endian endian, ICacheReferences references)
         {
             var tweakDBIdIndex = input.ReadValueU32(endian);
-            return (tables.GetTweakDBId(tweakDBIdIndex), 8);
+            return (references.GetTweakDBId(tweakDBIdIndex), 8);
         }
 
-        private static (object, uint) ReadResource(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadResource(Stream input, Endian endian, ICacheReferences references)
         {
             var resourceIndex = input.ReadValueU32(endian);
-            return (tables.GetResource(resourceIndex), 8);
+            return (references.GetResource(resourceIndex), 8);
         }
 
-        private static (object, uint) ReadNativeWithU8(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadNativeWithU8(Stream input, Endian endian, ICacheReferences references)
         {
             var definitionIndex = input.ReadValueU32(endian);
             var unknown = input.ReadValueU8();
-            return ((tables.GetDefinition<NativeDefinition>(definitionIndex), unknown), 9);
+            return ((references.GetDefinition<NativeDefinition>(definitionIndex), unknown), 9);
         }
 
-        private static (object, uint) ReadClassWithU8(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadClassWithU8(Stream input, Endian endian, ICacheReferences references)
         {
             var definitionIndex = input.ReadValueU32(endian);
             var unknown = input.ReadValueU8();
-            return ((tables.GetDefinition<ClassDefinition>(definitionIndex), unknown), 9);
+            return ((references.GetDefinition<ClassDefinition>(definitionIndex), unknown), 9);
         }
 
-        private static (object, uint) ReadEnumAssign(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadEnumAssign(Stream input, Endian endian, ICacheReferences references)
         {
             var enumerationIndex = input.ReadValueU32(endian);
-            var enumeration = tables.GetDefinition<EnumerationDefinition>(enumerationIndex);
+            var enumeration = references.GetDefinition<EnumerationDefinition>(enumerationIndex);
             var enumeralIndex = input.ReadValueU32(endian);
-            var enumeral = tables.GetDefinition<EnumeralDefinition>(enumeralIndex);
+            var enumeral = references.GetDefinition<EnumeralDefinition>(enumeralIndex);
             return ((enumeration, enumeral), 16);
         }
 
-        private static (object, uint) ReadConstruct(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadConstruct(Stream input, Endian endian, ICacheReferences references)
         {
             var parameterCount = input.ReadValueU8();
             var definitionIndex = input.ReadValueU32(endian);
-            return ((parameterCount, tables.GetDefinition<ClassDefinition>(definitionIndex)), 9);
+            return ((parameterCount, references.GetDefinition<ClassDefinition>(definitionIndex)), 9);
         }
 
-        private static (object, uint) ReadCall(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadCall(Stream input, Endian endian, ICacheReferences references)
         {
             var jumpOffset = input.ReadValueS16(endian);
             var unknown = input.ReadValueU16(endian);
             var definitionIndex = input.ReadValueU32(endian);
             jumpOffset += 1 + 2; // make relative to the instruction
-            return ((jumpOffset, unknown, tables.GetDefinition<FunctionDefinition>(definitionIndex)), 12);
+            return ((jumpOffset, unknown, references.GetDefinition<FunctionDefinition>(definitionIndex)), 12);
         }
 
-        private static (object, uint) ReadUnknown37(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadUnknown37(Stream input, Endian endian, ICacheReferences references)
         {
             var jumpOffset = input.ReadValueS16(endian);
             var unknown = input.ReadValueU16(endian);
@@ -205,7 +205,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             return ((jumpOffset, unknown, unknownIndex), 12);
         }
 
-        private static (object, uint) ReadUnknown21(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadUnknown21(Stream input, Endian endian, ICacheReferences references)
         {
             var unknown0 = input.ReadValueU16(endian);
             var unknown1 = input.ReadValueU32(endian);
@@ -216,15 +216,15 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             return ((unknown0, unknown1, unknown2, unknown3, unknown4, unknown5), 19);
         }
 
-        private static (object, uint) ReadSwitch(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadSwitch(Stream input, Endian endian, ICacheReferences references)
         {
             var definitionIndex = input.ReadValueU32(endian);
             var jumpOffset = input.ReadValueS16(endian);
             jumpOffset += 1 + 8 + 2; // make relative to the instruction
-            return ((tables.GetDefinition<NativeDefinition>(definitionIndex), jumpOffset), 10);
+            return ((references.GetDefinition<NativeDefinition>(definitionIndex), jumpOffset), 10);
         }
 
-        private static (object, uint) ReadSwitchCase(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadSwitchCase(Stream input, Endian endian, ICacheReferences references)
         {
             var jumpOffset1 = input.ReadValueS16(endian);
             jumpOffset1 += 1 + 2;
@@ -233,7 +233,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             return ((jumpOffset1, jumpOffset2), 4);
         }
 
-        private static (object, uint) ReadUnknown47(Stream input, Endian endian, ICacheTables tables)
+        private static (object, uint) ReadUnknown47(Stream input, Endian endian, ICacheReferences references)
         {
             var bytesSize = input.ReadValueU32(endian);
             var bytes = input.ReadBytes((int)bytesSize);
@@ -241,7 +241,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             return ((bytes, unknown), bytesSize + 5);
         }
 
-        private delegate (object, uint) ReadDelegate(Stream input, Endian endian, ICacheTables tables);
+        private delegate (object, uint) ReadDelegate(Stream input, Endian endian, ICacheReferences references);
 
         private static readonly Dictionary<Opcode, ReadDelegate> _Lookup;
 

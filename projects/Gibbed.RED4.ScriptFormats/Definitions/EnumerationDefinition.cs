@@ -41,12 +41,12 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 
         public override DefinitionType DefinitionType => DefinitionType.Enumeration;
 
-        internal override void Serialize(Stream output, Endian endian, ICacheTables tables)
+        internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
         {
             throw new NotImplementedException();
         }
 
-        internal override void Deserialize(Stream input, Endian endian, ICacheTables tables)
+        internal override void Deserialize(Stream input, Endian endian, ICacheReferences references)
         {
             // TODO(gibbed): maybe visibility?
             var unknown2A = input.ReadValueU8();
@@ -56,7 +56,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             for (uint i = 0; i < enumeralCount; i++)
             {
                 var enumeralIndex = input.ReadValueU32(endian);
-                enumerals[i] = tables.GetDefinition<EnumeralDefinition>(enumeralIndex);
+                enumerals[i] = references.GetDefinition<EnumeralDefinition>(enumeralIndex);
             }
             var unknown29 = input.ReadValueB8();
 

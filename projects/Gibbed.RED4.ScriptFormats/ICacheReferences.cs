@@ -22,7 +22,7 @@
 
 namespace Gibbed.RED4.ScriptFormats
 {
-    internal interface ICacheTables
+    internal interface ICacheReferences
     {
         Definition GetDefinition(uint index);
         T GetDefinition<T>(uint index) where T : Definition;

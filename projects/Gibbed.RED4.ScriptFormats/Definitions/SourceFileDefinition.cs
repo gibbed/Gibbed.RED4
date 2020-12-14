@@ -35,12 +35,12 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         public ulong PathHash { get; set; }
         public string Path;
 
-        internal override void Serialize(Stream output, Endian endian, ICacheTables tables)
+        internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
         {
             throw new NotImplementedException();
         }
 
-        internal override void Deserialize(Stream input, Endian endian, ICacheTables tables)
+        internal override void Deserialize(Stream input, Endian endian, ICacheReferences references)
         {
             this.Id = input.ReadValueU32(endian);
             this.PathHash = input.ReadValueU64(endian);

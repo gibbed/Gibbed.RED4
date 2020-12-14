@@ -33,15 +33,15 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         public Definition Type { get; set; }
         public byte Unknown28 { get; set; }
 
-        internal override void Serialize(Stream output, Endian endian, ICacheTables tables)
+        internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
         {
             throw new NotImplementedException();
         }
 
-        internal override void Deserialize(Stream input, Endian endian, ICacheTables tables)
+        internal override void Deserialize(Stream input, Endian endian, ICacheReferences references)
         {
             var typeIndex = input.ReadValueU32(endian);
-            var type = tables.GetDefinition(typeIndex);
+            var type = references.GetDefinition<NativeDefinition>(typeIndex);
             var unknown28 = input.ReadValueU8();
 
             this.Type = type;

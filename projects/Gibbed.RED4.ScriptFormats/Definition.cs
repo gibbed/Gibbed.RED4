@@ -32,22 +32,22 @@ namespace Gibbed.RED4.ScriptFormats
         public string Name { get; set; }
         public long LoadPosition { get; internal set; }
 
-        internal abstract void Serialize(Stream output, Endian endian, ICacheTables tables);
-        internal abstract void Deserialize(Stream input, Endian endian, ICacheTables tables);
+        internal abstract void Serialize(Stream output, Endian endian, ICacheReferences references);
+        internal abstract void Deserialize(Stream input, Endian endian, ICacheReferences references);
 
-        internal static Definition[] ReadDefinitionArray(Stream input, Endian endian, ICacheTables tables)
+        internal static Definition[] ReadDefinitionReferenceArray(Stream input, Endian endian, ICacheReferences references)
         {
             var count = input.ReadValueU32(endian);
             var items = new Definition[count];
             for (uint i = 0; i < count; i++)
             {
                 var definitionIndex = input.ReadValueU32(endian);
-                items[i] = tables.GetDefinition(definitionIndex);
+                items[i] = references.GetDefinition(definitionIndex);
             }
             return items;
         }
 
-        internal static T[] ReadDefinitionArray<T>(Stream input, Endian endian, ICacheTables tables)
+        internal static T[] ReadDefinitionReferenceArray<T>(Stream input, Endian endian, ICacheReferences references)
             where T: Definition
         {
             var count = input.ReadValueU32(endian);
@@ -55,7 +55,7 @@ namespace Gibbed.RED4.ScriptFormats
             for (uint i = 0; i < count; i++)
             {
                 var definitionIndex = input.ReadValueU32(endian);
-                items[i] = tables.GetDefinition<T>(definitionIndex);
+                items[i] = references.GetDefinition<T>(definitionIndex);
             }
             return items;
         }

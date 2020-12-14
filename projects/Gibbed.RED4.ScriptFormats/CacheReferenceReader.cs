@@ -24,14 +24,14 @@ using System;
 
 namespace Gibbed.RED4.ScriptFormats
 {
-    internal class CacheTableReader : ICacheTables
+    internal class CacheReferenceReader : ICacheReferences
     {
         private readonly Definition[] _Definitions;
         private readonly string[] _Names;
         private readonly string[] _TweakDBIds;
         private readonly string[] _Resources;
 
-        public CacheTableReader(Definition[] definition, string[] names, string[] tweakDBId, string[] resources)
+        public CacheReferenceReader(Definition[] definition, string[] names, string[] tweakDBId, string[] resources)
         {
             this._Definitions = definition;
             this._Names = names;

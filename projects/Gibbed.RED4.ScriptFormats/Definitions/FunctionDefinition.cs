@@ -57,12 +57,12 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         public long BodyLoadPosition { get; internal set; }
         public Instruction[] Body { get; set; }
 
-        internal override void Serialize(Stream output, Endian endian, ICacheTables tables)
+        internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
         {
             throw new NotImplementedException();
         }
 
-        internal override void Deserialize(Stream input, Endian endian, ICacheTables tables)
+        internal override void Deserialize(Stream input, Endian endian, ICacheReferences references)
         {
             var visibility = (Visibility)input.ReadValueU8();
             
@@ -78,7 +78,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             if ((flags & FunctionFlags.Unknown4) == 0)
             {
                 var sourceFileIndex = input.ReadValueU32(endian);
-                sourceFile = tables.GetDefinition<SourceFileDefinition>(sourceFileIndex);
+                sourceFile = references.GetDefinition<SourceFileDefinition>(sourceFileIndex);
                 unknownC0 = input.ReadValueU32(endian);
             }
             else
@@ -97,7 +97,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             else
             {
                 var returnTypeIndex = input.ReadValueU32(endian);
-                returnType = tables.GetDefinition(returnTypeIndex);
+                returnType = references.GetDefinition(returnTypeIndex);
                 unknown50 = input.ReadValueB8();
             }
 
@@ -109,7 +109,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             else
             {
                 var unknown58Index = input.ReadValueU32(endian);
-                unknown58 = tables.GetDefinition(unknown58Index);
+                unknown58 = references.GetDefinition(unknown58Index);
             }
 
             ParameterDefinition[] parameters;
@@ -119,7 +119,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             }
             else
             {
-                parameters = ReadDefinitionArray<ParameterDefinition>(input, endian, tables);
+                parameters = ReadDefinitionReferenceArray<ParameterDefinition>(input, endian, references);
             }
 
             LocalDefinition[] locals;
@@ -129,7 +129,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             }
             else
             {
-                locals = ReadDefinitionArray<LocalDefinition>(input, endian, tables);
+                locals = ReadDefinitionReferenceArray<LocalDefinition>(input, endian, references);
             }
 
             uint unknown98 = (flags & FunctionFlags.Unknown6) != 0
@@ -149,7 +149,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             {
                 var bodySize = input.ReadValueU32(endian);
                 bodyPosition = input.Position;
-                instructions = Instructions.Read(input, bodySize, endian, tables);
+                instructions = Instructions.Read(input, bodySize, endian, references);
             }
 
             this.Visibility = visibility;

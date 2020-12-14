@@ -34,19 +34,19 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         public Definition Type { get; set; }
         public uint Unknown20 { get; set; }
 
-        internal override void Serialize(Stream output, Endian endian, ICacheTables tables)
+        internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
         {
             throw new NotImplementedException();
         }
 
-        internal override void Deserialize(Stream input, Endian endian, ICacheTables tables)
+        internal override void Deserialize(Stream input, Endian endian, ICacheReferences references)
         {
             var unknown24 = input.ReadValueU8();
             Definition type;
             if (unknown24 >= 2 && unknown24 <= 6)
             {
                 var typeIndex = input.ReadValueU32(endian);
-                type = tables.GetDefinition(typeIndex);
+                type = references.GetDefinition(typeIndex);
             }
             else
             {

@@ -87,7 +87,7 @@ namespace Gibbed.RED4.ScriptFormats
                 definition.Parent = definitions[definitionHeader.ParentIndex];
                 definition.Name = names[definitionHeader.NameIndex];
             }
-            var tableReader = new CacheTableReader(definitions, names, tweakDBIds, resources);
+            var tableReader = new CacheReferenceReader(definitions, names, tweakDBIds, resources);
             for (int i = 1; i < definitionHeaders.Length; i++)
             {
                 var definitionHeader = definitionHeaders[i];

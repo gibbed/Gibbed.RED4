@@ -31,17 +31,17 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
     {
         public override DefinitionType DefinitionType => DefinitionType.Property;
 
-        internal override void Serialize(Stream output, Endian endian, ICacheTables tables)
+        internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
         {
             throw new NotImplementedException();
         }
 
-        internal override void Deserialize(Stream input, Endian endian, ICacheTables tables)
+        internal override void Deserialize(Stream input, Endian endian, ICacheReferences references)
         {
             var visibility = (Visibility)input.ReadValueU8();
             
             var unknown88Index = input.ReadValueU32(endian);
-            var unknown88 = tables.GetDefinition<NativeDefinition>(unknown88Index);
+            var unknown88 = references.GetDefinition<NativeDefinition>(unknown88Index);
             var unknown20 = input.ReadValueU16(endian);
 
             if ((unknown20 & 0x20) != 0)

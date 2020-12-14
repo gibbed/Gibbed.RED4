@@ -32,12 +32,12 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 
         public override DefinitionType DefinitionType => DefinitionType.Enumeral;
 
-        internal override void Serialize(Stream output, Endian endian, ICacheTables tables)
+        internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
         {
             throw new NotImplementedException();
         }
 
-        internal override void Deserialize(Stream input, Endian endian, ICacheTables tables)
+        internal override void Deserialize(Stream input, Endian endian, ICacheReferences references)
         {
             this.Value = input.ReadValueU64(endian);
         }

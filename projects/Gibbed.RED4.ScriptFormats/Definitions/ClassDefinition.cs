@@ -36,12 +36,12 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 
         public override DefinitionType DefinitionType => DefinitionType.Enumeral;
 
-        internal override void Serialize(Stream output, Endian endian, ICacheTables tables)
+        internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
         {
             throw new NotImplementedException();
         }
 
-        internal override void Deserialize(Stream input, Endian endian, ICacheTables tables)
+        internal override void Deserialize(Stream input, Endian endian, ICacheReferences references)
         {
             var visibility = (Visibility)input.ReadValueU8();
 
@@ -53,22 +53,22 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             }
 
             var baseClassIndex = input.ReadValueU32(endian);
-            var baseClass = tables.GetDefinition<ClassDefinition>(baseClassIndex);
+            var baseClass = references.GetDefinition<ClassDefinition>(baseClassIndex);
 
             var functions = (flags & ClassFlags.HasFunctions) != 0
-                ? ReadDefinitionArray<FunctionDefinition>(input, endian, tables)
+                ? ReadDefinitionReferenceArray<FunctionDefinition>(input, endian, references)
                 : null;
 
             Definition[] unknown20s;
             if ((flags & ClassFlags.Unknown5) != 0)
             {
-                unknown20s = ReadDefinitionArray<PropertyDefinition>(input, endian, tables);
+                unknown20s = ReadDefinitionReferenceArray<PropertyDefinition>(input, endian, references);
             }
 
             Definition[] unknown30s;
             if ((flags & ClassFlags.Unknown8) != 0)
             {
-                unknown30s = ReadDefinitionArray<PropertyDefinition>(input, endian, tables);
+                unknown30s = ReadDefinitionReferenceArray<PropertyDefinition>(input, endian, references);
             }
         }
     }
