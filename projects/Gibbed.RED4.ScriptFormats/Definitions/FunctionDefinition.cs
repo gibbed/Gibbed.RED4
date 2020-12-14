@@ -45,7 +45,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 
         public Visibility Visibility { get; set; }
         public FunctionFlags Flags { get; set; }
-        public ScriptFileDefinition SourceFile { get; set; }
+        public SourceFileDefinition SourceFile { get; set; }
         public uint SourceLine { get; set; }
         public Definition ReturnType { get; set; }
         public bool Unknown50 { get; set; }
@@ -73,17 +73,17 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 throw new FormatException();
             }
 
-            ScriptFileDefinition scriptFile;
+            SourceFileDefinition sourceFile;
             uint unknownC0;
             if ((flags & FunctionFlags.Unknown4) == 0)
             {
-                var scriptFileIndex = input.ReadValueU32(endian);
-                scriptFile = tables.GetDefinition<ScriptFileDefinition>(scriptFileIndex);
+                var sourceFileIndex = input.ReadValueU32(endian);
+                sourceFile = tables.GetDefinition<SourceFileDefinition>(sourceFileIndex);
                 unknownC0 = input.ReadValueU32(endian);
             }
             else
             {
-                scriptFile = null;
+                sourceFile = null;
                 unknownC0 = 0;
             }
 
@@ -154,7 +154,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 
             this.Visibility = visibility;
             this.Flags = flags;
-            this.SourceFile = scriptFile;
+            this.SourceFile = sourceFile;
             this.SourceLine = unknownC0;
             this.ReturnType = returnType;
             this.Unknown50 = unknown50;

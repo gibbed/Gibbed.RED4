@@ -27,7 +27,7 @@ using Gibbed.IO;
 
 namespace Gibbed.RED4.ScriptFormats.Definitions
 {
-    public class ScriptFileDefinition : Definition
+    public class SourceFileDefinition : Definition
     {
         public override DefinitionType DefinitionType => DefinitionType.ScriptFile;
 

@@ -57,7 +57,7 @@ namespace Gibbed.RED4.ScriptFormats
                 { DefinitionType.Parameter, () => new Definitions.ParameterDefinition() },
                 { DefinitionType.Local, () => new Definitions.LocalDefinition() },
                 { DefinitionType.Property, () => new Definitions.PropertyDefinition() },
-                { DefinitionType.ScriptFile, () => new Definitions.ScriptFileDefinition() },
+                { DefinitionType.ScriptFile, () => new Definitions.SourceFileDefinition() },
             };
         }
 
