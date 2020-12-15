@@ -34,6 +34,13 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             ClassFlags.HasFunctions | ClassFlags.Unknown5 |
             ClassFlags.IsImportOnly | ClassFlags.Unknown8;
 
+        public Visibility Visibility { get; set; }
+        public ClassFlags Flags { get; set; }
+        public ClassDefinition BaseClass { get; set; }
+        public FunctionDefinition[] Functions { get; set; }
+        public Definition[] Unknown20s { get; set; }
+        public Definition[] Unknown30s { get; set; }
+
         public override DefinitionType DefinitionType => DefinitionType.Enumeral;
 
         internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
@@ -70,6 +77,13 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             {
                 unknown30s = ReadDefinitionReferenceArray<PropertyDefinition>(input, endian, references);
             }
+
+            this.Visibility = visibility;
+            this.Flags = flags;
+            this.BaseClass = baseClass;
+            this.Functions = functions;
+            this.Unknown20s = unknown20s;
+            this.Unknown30s = unknown30s;
         }
     }
 }
