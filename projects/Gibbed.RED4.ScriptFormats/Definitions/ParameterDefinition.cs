@@ -21,8 +21,6 @@
  */
 
 using System;
-using System.IO;
-using Gibbed.IO;
 
 namespace Gibbed.RED4.ScriptFormats.Definitions
 {
@@ -33,19 +31,26 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         public Definition Type { get; set; }
         public byte Unknown28 { get; set; }
 
-        internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
+        internal override void Serialize(IDefinitionWriter writer)
         {
-            throw new NotImplementedException();
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            writer.WriteReference(this.Type);
+            writer.WriteValueU8(this.Unknown28);
         }
 
-        internal override void Deserialize(Stream input, Endian endian, ICacheReferences references)
+        internal override void Deserialize(IDefinitionReader reader)
         {
-            var typeIndex = input.ReadValueU32(endian);
-            var type = references.GetDefinition<NativeDefinition>(typeIndex);
-            var unknown28 = input.ReadValueU8();
+            if (reader == null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
 
-            this.Type = type;
-            this.Unknown28 = unknown28;
+            this.Type = reader.ReadReference<NativeDefinition>();
+            this.Unknown28 = reader.ReadValueU8();
         }
     }
 }

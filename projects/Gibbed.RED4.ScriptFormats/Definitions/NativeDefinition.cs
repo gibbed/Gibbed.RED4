@@ -21,8 +21,6 @@
  */
 
 using System;
-using System.IO;
-using Gibbed.IO;
 
 namespace Gibbed.RED4.ScriptFormats.Definitions
 {
@@ -34,30 +32,38 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         public Definition Type { get; set; }
         public uint Unknown20 { get; set; }
 
-        internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
+        internal override void Serialize(IDefinitionWriter writer)
         {
-            throw new NotImplementedException();
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            writer.WriteValueU8(this.Unknown24);
+
+            if (this.Unknown24 >= 2 && this.Unknown24 <= 6)
+            {
+                writer.WriteReference(this.Type);
+            }
+
+            if (this.Unknown24 == 5)
+            {
+                writer.WriteValueU32(this.Unknown20);
+            }
         }
 
-        internal override void Deserialize(Stream input, Endian endian, ICacheReferences references)
+        internal override void Deserialize(IDefinitionReader reader)
         {
-            var unknown24 = input.ReadValueU8();
-            Definition type;
-            if (unknown24 >= 2 && unknown24 <= 6)
+            if (reader == null)
             {
-                var typeIndex = input.ReadValueU32(endian);
-                type = references.GetDefinition(typeIndex);
+                throw new ArgumentNullException(nameof(reader));
             }
-            else
-            {
-                type = null;
-            }
-            var unknown20 = unknown24 == 5
-                ? input.ReadValueU32(endian)
-                : 0;
+
+            var unknown24 = reader.ReadValueU8();
+
             this.Unknown24 = unknown24;
-            this.Type = type;
-            this.Unknown20 = unknown20;
+            this.Type = unknown24 >= 2 && unknown24 <= 6 ? reader.ReadReference() : null;
+            this.Unknown20 = unknown24 == 5 ? reader.ReadValueU32() : 0;
         }
     }
 }

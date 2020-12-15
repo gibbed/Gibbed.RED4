@@ -32,33 +32,8 @@ namespace Gibbed.RED4.ScriptFormats
         public string Name { get; set; }
         public long LoadPosition { get; internal set; }
 
-        internal abstract void Serialize(Stream output, Endian endian, ICacheReferences references);
-        internal abstract void Deserialize(Stream input, Endian endian, ICacheReferences references);
-
-        internal static Definition[] ReadDefinitionReferenceArray(Stream input, Endian endian, ICacheReferences references)
-        {
-            var count = input.ReadValueU32(endian);
-            var items = new Definition[count];
-            for (uint i = 0; i < count; i++)
-            {
-                var definitionIndex = input.ReadValueU32(endian);
-                items[i] = references.GetDefinition(definitionIndex);
-            }
-            return items;
-        }
-
-        internal static T[] ReadDefinitionReferenceArray<T>(Stream input, Endian endian, ICacheReferences references)
-            where T: Definition
-        {
-            var count = input.ReadValueU32(endian);
-            var items = new T[count];
-            for (uint i = 0; i < count; i++)
-            {
-                var definitionIndex = input.ReadValueU32(endian);
-                items[i] = references.GetDefinition<T>(definitionIndex);
-            }
-            return items;
-        }
+        internal abstract void Serialize(IDefinitionWriter writer);
+        internal abstract void Deserialize(IDefinitionReader reader);
 
         public override string ToString()
         {

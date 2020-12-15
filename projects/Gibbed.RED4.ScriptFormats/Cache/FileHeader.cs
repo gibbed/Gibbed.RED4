@@ -52,14 +52,17 @@ namespace Gibbed.RED4.ScriptFormats.Cache
             return instance;
         }
 
-        public static void Write(Stream output, FileHeader instance, Endian endian)
+        public static void Write(Stream output, FileHeader instance)
         {
-            throw new NotImplementedException();
+            var endian = instance.Endian;
+            output.WriteValueU32(Signature, endian);
+            output.WriteValueU32(instance.Version, endian);
+            output.WriteValueU32(instance.Unknown, endian);
         }
 
-        public void Write(Stream output, Endian endian)
+        public void Write(Stream output)
         {
-            Write(output, this, endian);
+            Write(output, this);
         }
     }
 }

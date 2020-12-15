@@ -20,34 +20,34 @@
  *    distribution.
  */
 
-using System;
-
-namespace Gibbed.RED4.ScriptFormats.Definitions
+namespace Gibbed.RED4.ScriptFormats
 {
-    public class EnumeralDefinition : Definition
+    internal interface IDefinitionReader
     {
-        public override DefinitionType DefinitionType => DefinitionType.Enumeral;
+        long Position { get; set; }
 
-        public ulong Value { get; set; }
-
-        internal override void Serialize(IDefinitionWriter writer)
-        {
-            if (writer == null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            writer.WriteValueU64(this.Value);
-        }
-
-        internal override void Deserialize(IDefinitionReader reader)
-        {
-            if (reader == null)
-            {
-                throw new ArgumentNullException(nameof(reader));
-            }
-
-            this.Value = reader.ReadValueU64();
-        }
+        bool ReadValueB8();
+        sbyte ReadValueS8();
+        short ReadValueS16();
+        int ReadValueS32();
+        long ReadValueS64();
+        byte ReadValueU8();
+        ushort ReadValueU16();
+        uint ReadValueU32();
+        ulong ReadValueU64();
+        float ReadValueF32();
+        double ReadValueF64();
+        string ReadStringU16();
+        string ReadStringU16(out ushort size);
+        string ReadStringU32();
+        string ReadStringU32(out uint size);
+        byte[] ReadBytes();
+        Definition ReadReference();
+        T ReadReference<T>() where T : Definition;
+        Definition[] ReadReferences();
+        T[] ReadReferences<T>() where T : Definition;
+        string ReadName();
+        string ReadTweakDBId();
+        string ReadResource();
     }
 }

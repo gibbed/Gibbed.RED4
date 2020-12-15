@@ -28,20 +28,30 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 {
     internal static class Instructions
     {
-        internal static Instruction[] Read(Stream input, uint count, Endian endian, ICacheReferences references)
+        internal static Instruction[] Read(IDefinitionReader reader, uint count)
         {
             var result = new List<Instruction>();
             for (uint i = 0; i < count;)
             {
                 InstructionLoadInfo loadInfo;
-                loadInfo.BasePosition = input.Position;
+                loadInfo.BasePosition = reader.Position;
                 loadInfo.Offset = i;
-                (var instruction, var size) = InstructionReaders.Read(input, endian, references);
+                var (instruction, size) = InstructionReaders.Read(reader);
                 instruction.LoadInfo = loadInfo;
                 result.Add(instruction);
                 i += size;
             }
             return result.ToArray();
+        }
+
+        internal static uint Write(IDefinitionWriter writer, IEnumerable<Instruction> body)
+        {
+            uint size = 0;
+            foreach (var instruction in body)
+            {
+                size += InstructionWriters.Write(instruction, writer);
+            }
+            return size;
         }
     }
 }

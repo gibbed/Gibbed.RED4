@@ -61,7 +61,16 @@ namespace Gibbed.RED4.ScriptFormats.Cache
 
         public static void Write(Stream output, CacheHeader instance, Endian endian)
         {
-            throw new NotImplementedException();
+            output.WriteValueU32(instance.Unknown00, endian);
+            output.WriteValueU32(instance.Unknown04, endian);
+            output.WriteValueU32(instance.Unknown08, endian);
+            output.WriteValueU32(instance.HeaderHash, endian);
+            output.WriteValueU32(instance.Unknown10, endian);
+            instance.StringData.Write(output, endian);
+            instance.NameStringOffsets.Write(output, endian);
+            instance.TweakDBIdStringOffsets.Write(output, endian);
+            instance.ResourceStringOffsets.Write(output, endian);
+            instance.Definitions.Write(output, endian);
         }
 
         public void Write(Stream output, Endian endian)

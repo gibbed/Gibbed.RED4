@@ -22,9 +22,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using Gibbed.IO;
 
 namespace Gibbed.RED4.ScriptFormats.Definitions
 {
@@ -33,27 +30,27 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         // All of these readers are completely temporary while research is on-going.
         // TODO(gibbed): concrete types for all of this.
 
-        internal static (Instruction, uint) Read(Stream input, Endian endian, ICacheReferences references)
+        internal static (Instruction, uint) Read(IDefinitionReader reader)
         {
             uint size = 0;
 
-            var op = (Opcode)input.ReadValueU8();
+            var op = (Opcode)reader.ReadValueU8();
             size++;
 
-            if (_Lookup.TryGetValue(op, out var reader) == false)
+            if (_Lookup.TryGetValue(op, out var opcodeReader) == false)
             {
                 throw new FormatException($"no handler for {op}");
             }
 
             Instruction instance;
             instance.Op = op;
-            if (reader == null)
+            if (opcodeReader == null)
             {
                 instance.Argument = null;
             }
             else
             {
-                (var argument, var argumentSize) = reader(input, endian, references);
+                var (argument, argumentSize) = opcodeReader(reader);
                 instance.Argument = argument;
                 size += argumentSize;
             }
@@ -61,187 +58,177 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             return (instance, size);
         }
 
-        private static (object, uint) ReadValueU8(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadValueU8(IDefinitionReader reader)
         {
-            return (input.ReadValueU8(), 1);
+            return (reader.ReadValueU8(), 1);
         }
 
-        private static (object, uint) ReadValueU16(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadValueU16(IDefinitionReader reader)
         {
-            return (input.ReadValueU16(endian), 2);
+            return (reader.ReadValueU16(), 2);
         }
 
-        private static (object, uint) ReadValueU32(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadValueU32(IDefinitionReader reader)
         {
-            return (input.ReadValueU32(endian), 4);
+            return (reader.ReadValueU32(), 4);
         }
 
-        private static (object, uint) ReadValueU64(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadValueU64(IDefinitionReader reader)
         {
-            return (input.ReadValueU64(endian), 8);
+            return (reader.ReadValueU64(), 8);
         }
 
-        private static (object, uint) ReadValueS8(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadValueS8(IDefinitionReader reader)
         {
-            return (input.ReadValueS8(), 1);
+            return (reader.ReadValueS8(), 1);
         }
 
-        private static (object, uint) ReadValueS16(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadValueS16(IDefinitionReader reader)
         {
-            return (input.ReadValueS16(endian), 2);
+            return (reader.ReadValueS16(), 2);
         }
 
-        private static (object, uint) ReadValueS32(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadValueS32(IDefinitionReader reader)
         {
-            return (input.ReadValueS32(endian), 4);
+            return (reader.ReadValueS32(), 4);
         }
 
-        private static (object, uint) ReadValueS64(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadValueS64(IDefinitionReader reader)
         {
-            return (input.ReadValueS64(endian), 8);
+            return (reader.ReadValueS64(), 8);
         }
 
-        private static (object, uint) ReadValueF32(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadValueF32(IDefinitionReader reader)
         {
-            return (input.ReadValueF32(endian), 4);
+            return (reader.ReadValueF32(), 4);
         }
 
-        private static (object, uint) ReadValueF64(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadValueF64(IDefinitionReader reader)
         {
-            return (input.ReadValueF64(endian), 8);
+            return (reader.ReadValueF64(), 8);
         }
 
-        private static (object, uint) ReadString(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadString(IDefinitionReader reader)
         {
-            var size = input.ReadValueU32(endian);
-            return (input.ReadString((int)size, true, Encoding.UTF8), 4 + size);
+            return (reader.ReadStringU32(out var size), 4 + size);
         }
 
-        private static (object, uint) ReadJump(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadJump(IDefinitionReader reader)
         {
-            var jumpOffset = input.ReadValueS16(endian);
+            var jumpOffset = reader.ReadValueS16();
             jumpOffset += 1 + 2; // make relative to the instruction
             return (jumpOffset, 2);
         }
 
-        private static (object, uint) ReadType(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadType(IDefinitionReader reader)
         {
-            var definitionIndex = input.ReadValueU32(endian);
-            return (new ValueTuple<Definition>(references.GetDefinition(definitionIndex)), 8);
+            var definition = reader.ReadReference();
+            return (new ValueTuple<Definition>(definition), 8);
         }
 
-        private static (object, uint) ReadType<T>(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadType<T>(IDefinitionReader reader)
             where T: Definition
         {
-            var definitionIndex = input.ReadValueU32(endian);
-            var type = references.GetDefinition<T>(definitionIndex);
-            return (new ValueTuple<T>(type), 8);
+            var definition = reader.ReadReference<T>();
+            return (new ValueTuple<T>(definition), 8);
         }
 
-        private static (object, uint) ReadName(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadName(IDefinitionReader reader)
         {
-            var nameIndex = input.ReadValueU32(endian);
-            return (references.GetName(nameIndex), 8);
+            return (reader.ReadName(), 8);
         }
 
-        private static (object, uint) ReadTweakDBId(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadTweakDBId(IDefinitionReader reader)
         {
-            var tweakDBIdIndex = input.ReadValueU32(endian);
-            return (references.GetTweakDBId(tweakDBIdIndex), 8);
+            return (reader.ReadTweakDBId(), 8);
         }
 
-        private static (object, uint) ReadResource(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadResource(IDefinitionReader reader)
         {
-            var resourceIndex = input.ReadValueU32(endian);
-            return (references.GetResource(resourceIndex), 8);
+            return (reader.ReadResource(), 8);
         }
 
-        private static (object, uint) ReadNativeWithU8(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadNativeWithU8(IDefinitionReader reader)
         {
-            var definitionIndex = input.ReadValueU32(endian);
-            var unknown = input.ReadValueU8();
-            return ((references.GetDefinition<NativeDefinition>(definitionIndex), unknown), 9);
+            var definition = reader.ReadReference<NativeDefinition>();
+            var unknown = reader.ReadValueU8();
+            return ((definition, unknown), 9);
         }
 
-        private static (object, uint) ReadClassWithU8(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadClassWithU8(IDefinitionReader reader)
         {
-            var definitionIndex = input.ReadValueU32(endian);
-            var unknown = input.ReadValueU8();
-            return ((references.GetDefinition<ClassDefinition>(definitionIndex), unknown), 9);
+            var definition = reader.ReadReference<ClassDefinition>();
+            var unknown = reader.ReadValueU8();
+            return ((definition, unknown), 9);
         }
 
-        private static (object, uint) ReadEnumAssign(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadEnumAssign(IDefinitionReader reader)
         {
-            var enumerationIndex = input.ReadValueU32(endian);
-            var enumeration = references.GetDefinition<EnumerationDefinition>(enumerationIndex);
-            var enumeralIndex = input.ReadValueU32(endian);
-            var enumeral = references.GetDefinition<EnumeralDefinition>(enumeralIndex);
+            var enumeration = reader.ReadReference<EnumerationDefinition>();
+            var enumeral = reader.ReadReference<EnumeralDefinition>();
             return ((enumeration, enumeral), 16);
         }
 
-        private static (object, uint) ReadConstruct(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadConstruct(IDefinitionReader reader)
         {
-            var parameterCount = input.ReadValueU8();
-            var definitionIndex = input.ReadValueU32(endian);
-            return ((parameterCount, references.GetDefinition<ClassDefinition>(definitionIndex)), 9);
+            var parameterCount = reader.ReadValueU8();
+            return ((parameterCount, reader.ReadReference<ClassDefinition>()), 9);
         }
 
-        private static (object, uint) ReadCall(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadCall(IDefinitionReader reader)
         {
-            var jumpOffset = input.ReadValueS16(endian);
-            var unknown = input.ReadValueU16(endian);
-            var definitionIndex = input.ReadValueU32(endian);
+            var jumpOffset = reader.ReadValueS16();
+            var unknown = reader.ReadValueU16();
+            var definition = reader.ReadReference<FunctionDefinition>();
             jumpOffset += 1 + 2; // make relative to the instruction
-            return ((jumpOffset, unknown, references.GetDefinition<FunctionDefinition>(definitionIndex)), 12);
+            return ((jumpOffset, unknown, definition), 12);
         }
 
-        private static (object, uint) ReadUnknown37(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadCallName(IDefinitionReader reader)
         {
-            var jumpOffset = input.ReadValueS16(endian);
-            var unknown = input.ReadValueU16(endian);
-            var unknownIndex = input.ReadValueU32(endian);
+            var jumpOffset = reader.ReadValueS16();
+            var unknown = reader.ReadValueU16();
+            var name = reader.ReadName();
             jumpOffset += 1 + 2; // make relative to the instruction
-            // Clearly some sort of call, but unknownIndex is not an index into the type table.
-            return ((jumpOffset, unknown, unknownIndex), 12);
+            return ((jumpOffset, unknown, name), 12);
         }
 
-        private static (object, uint) ReadUnknown21(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadUnknown21(IDefinitionReader reader)
         {
-            var unknown0 = input.ReadValueU16(endian);
-            var unknown1 = input.ReadValueU32(endian);
-            var unknown2 = input.ReadValueU16(endian);
-            var unknown3 = input.ReadValueU16(endian);
-            var unknown4 = input.ReadValueU8();
-            var unknown5 = input.ReadValueU64(endian);
+            var unknown0 = reader.ReadValueU16();
+            var unknown1 = reader.ReadValueU32();
+            var unknown2 = reader.ReadValueU16();
+            var unknown3 = reader.ReadValueU16();
+            var unknown4 = reader.ReadValueU8();
+            var unknown5 = reader.ReadValueU64();
             return ((unknown0, unknown1, unknown2, unknown3, unknown4, unknown5), 19);
         }
 
-        private static (object, uint) ReadSwitch(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadSwitch(IDefinitionReader reader)
         {
-            var definitionIndex = input.ReadValueU32(endian);
-            var jumpOffset = input.ReadValueS16(endian);
+            var definition = reader.ReadReference<NativeDefinition>();
+            var jumpOffset = reader.ReadValueS16();
             jumpOffset += 1 + 8 + 2; // make relative to the instruction
-            return ((references.GetDefinition<NativeDefinition>(definitionIndex), jumpOffset), 10);
+            return ((definition, jumpOffset), 10);
         }
 
-        private static (object, uint) ReadSwitchCase(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadSwitchCase(IDefinitionReader reader)
         {
-            var jumpOffset1 = input.ReadValueS16(endian);
+            var jumpOffset1 = reader.ReadValueS16();
             jumpOffset1 += 1 + 2;
-            var jumpOffset2 = input.ReadValueS16(endian);
+            var jumpOffset2 = reader.ReadValueS16();
             jumpOffset2 += 1 + 2 + 2;
             return ((jumpOffset1, jumpOffset2), 4);
         }
 
-        private static (object, uint) ReadUnknown47(Stream input, Endian endian, ICacheReferences references)
+        private static (object, uint) ReadUnknown47(IDefinitionReader reader)
         {
-            var bytesSize = input.ReadValueU32(endian);
-            var bytes = input.ReadBytes((int)bytesSize);
-            var unknown = input.ReadValueU8();
-            return ((bytes, unknown), bytesSize + 5);
+            var bytes = reader.ReadBytes();
+            var unknown = reader.ReadValueU8();
+            return ((bytes, unknown), (uint)bytes.Length + 5);
         }
 
-        private delegate (object, uint) ReadDelegate(Stream input, Endian endian, ICacheReferences references);
+        private delegate (object, uint) ReadDelegate(IDefinitionReader reader);
 
         private static readonly Dictionary<Opcode, ReadDelegate> _Lookup;
 
@@ -286,7 +273,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 { (Opcode)34, ReadSwitchCase },
                 { Opcode.Construct, ReadConstruct },
                 { Opcode.Call, ReadCall },
-                { Opcode.NativeCall, ReadUnknown37 },
+                { Opcode.CallName, ReadCallName },
                 { Opcode.EndCall, null },
                 { Opcode.ReturnWithValue, null },
                 { Opcode.LoadProperty, ReadType<PropertyDefinition> },
