@@ -27,6 +27,7 @@ using System.Linq;
 using System.Text;
 using Gibbed.RED4.ScriptFormats;
 using Gibbed.RED4.ScriptFormats.Definitions;
+using Gibbed.RED4.ScriptFormats.Instructions;
 
 namespace ScriptCacheDumpTest
 {
@@ -104,7 +105,7 @@ namespace ScriptCacheDumpTest
 
         private static void DumpFunctions(CacheFile cache, bool validate)
         {
-            string currentSourcePath = null;
+            string currentSourcePath = "***DUMP FUNCTIONS***";
             FunctionDefinition previousFunction = null;
             var sb = new StringBuilder();
             foreach (var function in cache.Definitions
@@ -187,16 +188,6 @@ namespace ScriptCacheDumpTest
 
                 var instruction = group.Instruction;
 
-                if (previousOp == Opcode.NoOperation || previousOp == Opcode.ReturnWithValue)
-                {
-                    if (instruction.Op != Opcode.Switch &&
-                        instruction.Op != Opcode.SwitchCase &&
-                        instruction.Op != Opcode.SwitchDefault)
-                    {
-                        //sb.AppendLine();
-                    }
-                }
-
                 if (instruction.LoadInfo == null)
                 {
                     sb.Append($"  (@0x?????? ????) @????");
@@ -260,8 +251,8 @@ namespace ScriptCacheDumpTest
                 sb.AppendLine(")");
             }
             else if (instruction.Op == Opcode.Jump ||
-                instruction.Op == Opcode.JumpFalse ||
-                instruction.Op == (Opcode)41)
+                instruction.Op == Opcode.JumpIfFalse ||
+                instruction.Op == Opcode.Context)
             {
                 var jumpOffset = (short)instruction.Argument;
                 sb.Append($" {jumpOffset:+#;-#}");
@@ -273,30 +264,30 @@ namespace ScriptCacheDumpTest
             }
             else if (instruction.Op == Opcode.Switch)
             {
-                var (switchType, jumpOffset) = ((NativeDefinition, short))instruction.Argument;
-                sb.Append($" ({jumpOffset:+#;-#}");
+                var (switchType, firstCaseOffset) = (Switch)instruction.Argument;
+                sb.Append($" ({firstCaseOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
                 {
-                    sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
+                    sb.Append($" => {instruction.LoadInfo.Value.Offset + firstCaseOffset}");
                 }
                 sb.AppendLine($", {switchType})");
             }
-            else if (instruction.Op == Opcode.SwitchCase)
+            else if (instruction.Op == Opcode.SwitchLabel)
             {
-                var (defaultJumpOffset, caseJumpOffset) = ((short, short))instruction.Argument;
-                sb.Append($" (false: {defaultJumpOffset:+#;-#}");
+                var (falseOffset, trueOffset) = (SwitchLabel)instruction.Argument;
+                sb.Append($" (false: {falseOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
                 {
-                    sb.Append($" => {instruction.LoadInfo.Value.Offset + defaultJumpOffset}");
+                    sb.Append($" => {instruction.LoadInfo.Value.Offset + falseOffset}");
                 }
-                sb.Append($", true: {caseJumpOffset:+#;-#}");
+                sb.Append($", true: {trueOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
                 {
-                    sb.Append($" => {instruction.LoadInfo.Value.Offset + caseJumpOffset}");
+                    sb.Append($" => {instruction.LoadInfo.Value.Offset + trueOffset}");
                 }
                 sb.AppendLine(")");
             }
-            else if (instruction.Op == (Opcode)33)
+            else if (instruction.Op == Opcode.Skip)
             {
                 var jumpOffset = (short)instruction.Argument;
                 sb.Append($" {jumpOffset:+#;-#}");
@@ -306,16 +297,16 @@ namespace ScriptCacheDumpTest
                 }
                 sb.AppendLine();
             }
-            else if (instruction.Op == Opcode.Call)
+            else if (instruction.Op == Opcode.FinalFunc)
             {
-                var (jumpOffset, unknown, function) = ((short, ushort, FunctionDefinition))instruction.Argument;
+                var (jumpOffset, sourceLine, function) = (FinalFunc)instruction.Argument;
 
                 sb.Append($" ({jumpOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
                 {
                     sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
                 }
-                sb.Append($", {unknown}, {function})");
+                sb.Append($", {sourceLine}, {function})");
 
                 if (function.Parameters.Count > 0)
                 {
@@ -324,9 +315,9 @@ namespace ScriptCacheDumpTest
 
                 sb.AppendLine();
             }
-            else if (instruction.Op == Opcode.CallName)
+            else if (instruction.Op == Opcode.VirtualFunc)
             {
-                var (jumpOffset, unknown, name) = ((short, ushort, string))instruction.Argument;
+                var (jumpOffset, unknown, name) = (VirtualFunc)instruction.Argument;
 
                 sb.Append($" ({jumpOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)

@@ -20,33 +20,45 @@
  *    distribution.
  */
 
-using System.IO;
-using Gibbed.IO;
+using Gibbed.RED4.ScriptFormats.Definitions;
 
-namespace Gibbed.RED4.ScriptFormats
+namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    public abstract class Definition
+    public struct EnumCast
     {
-        public abstract DefinitionType DefinitionType { get; }
-        public Definition Parent { get; set; }
-        public string Name { get; set; }
-        public long LoadPosition { get; internal set; }
+        public NativeDefinition Type;
+        public byte Size;
 
-        public Definition()
+        public EnumCast(NativeDefinition type, byte size)
         {
-            this.Name = "";
+            this.Type = type;
+            this.Size = size;
         }
 
-        internal abstract void Serialize(IDefinitionWriter writer);
-        internal abstract void Deserialize(IDefinitionReader reader);
+        internal static (object, uint) Read(IDefinitionReader reader)
+        {
+            var type = reader.ReadReference<NativeDefinition>();
+            var size = reader.ReadValueU8();
+            return (new EnumCast(type, size), 9);
+        }
+
+        internal static uint Write(object argument, IDefinitionWriter writer)
+        {
+            var (type, size) = (EnumCast)argument;
+            writer.WriteReference(type);
+            writer.WriteValueU8(size);
+            return 9;
+        }
+
+        public void Deconstruct(out NativeDefinition type, out byte size)
+        {
+            type = this.Type;
+            size = this.Size;
+        }
 
         public override string ToString()
         {
-            if (string.IsNullOrEmpty(this.Name) == true)
-            {
-                return $"{this.DefinitionType}";
-            }
-            return $"{this.DefinitionType} {this.Name}";
+            return $"({this.Type}, {this.Size})";
         }
     }
 }

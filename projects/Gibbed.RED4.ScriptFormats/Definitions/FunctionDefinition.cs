@@ -53,7 +53,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         private static readonly FunctionFlags KnownFlags =
             FunctionFlags.Unknown0 | FunctionFlags.Unknown1 |
             FunctionFlags.Unknown2 | FunctionFlags.Unknown3 |
-            FunctionFlags.Unknown4 | FunctionFlags.Unknown5 |
+            FunctionFlags.IsNative | FunctionFlags.Unknown5 |
             FunctionFlags.Unknown6 |
             FunctionFlags.HasReturnValue |
             FunctionFlags.Unknown8 |
@@ -73,7 +73,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             writer.WriteValueU8((byte)this.Visibility);
             writer.WriteValueU32((uint)this.Flags);
 
-            if ((this.Flags & FunctionFlags.Unknown4) == 0)
+            if ((this.Flags & FunctionFlags.IsNative) == 0)
             {
                 writer.WriteReference(this.SourceFile);
                 writer.WriteValueU32(this.SourceLine);
@@ -136,7 +136,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 
             SourceFileDefinition sourceFile;
             uint sourceLine;
-            if ((flags & FunctionFlags.Unknown4) == 0)
+            if ((flags & FunctionFlags.IsNative) == 0)
             {
                 sourceFile = reader.ReadReference<SourceFileDefinition>();
                 sourceLine = reader.ReadValueU32();

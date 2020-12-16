@@ -20,33 +20,23 @@
  *    distribution.
  */
 
-using System.IO;
-using Gibbed.IO;
-
-namespace Gibbed.RED4.ScriptFormats
+namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    public abstract class Definition
+    internal static class _Jump
     {
-        public abstract DefinitionType DefinitionType { get; }
-        public Definition Parent { get; set; }
-        public string Name { get; set; }
-        public long LoadPosition { get; internal set; }
-
-        public Definition()
+        public static (object, uint) Read(IDefinitionReader reader)
         {
-            this.Name = "";
+            var jumpOffset = reader.ReadValueS16();
+            jumpOffset += 1 + 2; // make relative to the instruction
+            return (jumpOffset, 2);
         }
 
-        internal abstract void Serialize(IDefinitionWriter writer);
-        internal abstract void Deserialize(IDefinitionReader reader);
-
-        public override string ToString()
+        public static uint Write(object argument, IDefinitionWriter writer)
         {
-            if (string.IsNullOrEmpty(this.Name) == true)
-            {
-                return $"{this.DefinitionType}";
-            }
-            return $"{this.DefinitionType} {this.Name}";
+            var jumpOffset = (short)argument;
+            jumpOffset -= 1 + 2; // make relative to the jump offset;
+            writer.WriteValueS16(jumpOffset);
+            return 2;
         }
     }
 }

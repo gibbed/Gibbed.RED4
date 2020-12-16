@@ -20,33 +20,19 @@
  *    distribution.
  */
 
-using System.IO;
-using Gibbed.IO;
-
-namespace Gibbed.RED4.ScriptFormats
+namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    public abstract class Definition
+    internal static class NameConst
     {
-        public abstract DefinitionType DefinitionType { get; }
-        public Definition Parent { get; set; }
-        public string Name { get; set; }
-        public long LoadPosition { get; internal set; }
-
-        public Definition()
+        public static (object, uint) Read(IDefinitionReader reader)
         {
-            this.Name = "";
+            return (reader.ReadName(), 8);
         }
 
-        internal abstract void Serialize(IDefinitionWriter writer);
-        internal abstract void Deserialize(IDefinitionReader reader);
-
-        public override string ToString()
+        public static uint Write(object argument, IDefinitionWriter writer)
         {
-            if (string.IsNullOrEmpty(this.Name) == true)
-            {
-                return $"{this.DefinitionType}";
-            }
-            return $"{this.DefinitionType} {this.Name}";
+            writer.WriteName((string)argument);
+            return 8;
         }
     }
 }
