@@ -24,8 +24,8 @@ namespace Gibbed.RED4.ScriptFormats
 {
     public enum NativeType : byte
     {
-        Simple = 0,
-        Complex = 1,
+        Simple = 0, // Such as Int32, Float, etc.
+        Complex = 1, // Such as enums, classes, etc.
         Handle = 2,
         WeakHandle = 3,
         Array = 4,
