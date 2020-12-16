@@ -203,7 +203,7 @@ namespace ScriptCacheDumpTest
 
                 if (instruction.LoadInfo == null)
                 {
-                    sb.Append($"  (@0x?????? ????) @???? OP{opcodeIdx++,-4}");
+                    sb.Append($"  (@0x?????? ????) @???? #{opcodeIdx++,-4}");
                 }
                 else
                 {
@@ -222,7 +222,7 @@ namespace ScriptCacheDumpTest
                         relativePosition = loadInfo.BasePosition - function.BodyLoadPosition;
                     }
 
-                    sb.Append($"  (@0x{absolutePosition:X6} {relativePosition,4}) @{loadInfo.Offset,-4} OP{opcodeIdx++,-4}");
+                    sb.Append($"  (@0x{absolutePosition:X6} {relativePosition,4}) @{loadInfo.Offset,-4} #{opcodeIdx++,-4}");
                 }
 
                 sb.Append(" | ");
@@ -233,6 +233,8 @@ namespace ScriptCacheDumpTest
                 {
                     groupStack.AddFirst((child, depth + 1));
                 }
+
+                previousOp = instruction.Op;
             }
 
             sb.AppendLine("}");
