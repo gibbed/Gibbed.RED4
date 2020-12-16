@@ -21,6 +21,7 @@
  */
 
 using System.IO;
+using System.Text;
 using Gibbed.IO;
 
 namespace Gibbed.RED4.ScriptFormats
@@ -40,13 +41,27 @@ namespace Gibbed.RED4.ScriptFormats
         internal abstract void Serialize(IDefinitionWriter writer);
         internal abstract void Deserialize(IDefinitionReader reader);
 
+        public virtual string ToName()
+        {
+            return string.IsNullOrEmpty(this.Name) == true ? "(null)" : this.Name;
+        }
+
+        public virtual string ToPath()
+        {
+            var sb = new StringBuilder();
+            sb.Append(this.ToName());
+            var parent = this.Parent;
+            while (parent != null)
+            {
+                sb.Insert(0, $"{parent.ToName()}::");
+                parent = parent.Parent;
+            }
+            return sb.ToString();
+        }
+
         public override string ToString()
         {
-            if (string.IsNullOrEmpty(this.Name) == true)
-            {
-                return $"{this.DefinitionType}";
-            }
-            return $"{this.DefinitionType} {this.Name}";
+            return $"{this.DefinitionType} {this.ToPath()}";
         }
     }
 }

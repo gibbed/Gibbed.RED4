@@ -204,5 +204,16 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             this.BodyLoadPosition = bodyPosition;
             this.Body.AddRange(instructions);
         }
+
+        public override string ToName()
+        {
+            if (this.Name == null)
+            {
+                return base.ToName();
+            }
+
+            var index = this.Name.IndexOf(';');
+            return index <= 0 ? this.Name : this.Name.Substring(0, index);
+        }
     }
 }

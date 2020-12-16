@@ -83,7 +83,7 @@ namespace ScriptCacheDumpTest
                 .ToArray();
             var sb = new StringBuilder();
             foreach (var tuple in candidates
-                .Select(c => (function: c, path: GetPath(c)))
+                .Select(c => (function: c, path: c.ToPath()))
                 .Where(t => t.function.Parent == null)
                 .OrderBy(t => t.path))
             {
@@ -141,34 +141,46 @@ namespace ScriptCacheDumpTest
 
         private static void DumpFunction(CacheFile cacheFile, FunctionDefinition function, StringBuilder sb, bool validate)
         {
-            if (function.ReturnType == null)
-            {
-                sb.Append("void ");
-            }
-            else
-            {
-                sb.Append($"{GetPath(function.ReturnType)} ");
-            }
+            sb.Append("function ");
 
-            sb.AppendLine(GetPath(function));
+            sb.Append(function.ToPath());
 
-            if (function.Flags != FunctionFlags.None)
-            {
-                sb.AppendLine($"  // Flags : {function.Flags}");
-            }
+            sb.Append("(");
 
-            if (function.Parameters != null)
+            for (int i = 0; i < function.Parameters.Count; i++)
             {
-                foreach (var parameter in function.Parameters)
+                var parameter = function.Parameters[i];
+                if (i > 0)
                 {
-                    sb.AppendLine($"  // {parameter} : {parameter.Type}");
+                    sb.Append(", ");
                 }
+                sb.Append($"{parameter.ToName()}: {parameter.Type.ToPath()}");
             }
+
+            sb.Append(")");
+
+            if (function.ReturnType != null)
+            {
+                sb.Append($" : {function.ReturnType.ToPath()} ");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("{");
+
+            const FunctionFlags ignoredFlags = FunctionFlags.HasReturnValue |
+                FunctionFlags.HasParameters | FunctionFlags.HasLocals |
+                FunctionFlags.HasBody;
+            var flags = function.Flags & ~ignoredFlags;
+            if (flags != FunctionFlags.None)
+            {
+                sb.AppendLine($"  // Flags : {flags}");
+            }
+
             if (function.Locals != null)
             {
                 foreach (var local in function.Locals)
                 {
-                    sb.AppendLine($"  // {local} : {local.Type}");
+                    sb.AppendLine($"  var {local.ToName()} : {local.Type.ToPath()};");
                 }
             }
 
@@ -180,7 +192,6 @@ namespace ScriptCacheDumpTest
                 groupStack.AddLast((group, 0));
             }
 
-            Opcode? previousOp = null;
             while (groupStack.Count > 0)
             {
                 var (group, depth) = groupStack.First.Value;
@@ -221,6 +232,8 @@ namespace ScriptCacheDumpTest
                     groupStack.AddFirst((child, depth + 1));
                 }
             }
+
+            sb.AppendLine("}");
         }
 
         private static void DumpInstruction(Instruction instruction, StringBuilder sb, int depth)
@@ -306,11 +319,11 @@ namespace ScriptCacheDumpTest
                 {
                     sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
                 }
-                sb.Append($", {sourceLine}, {function})");
+                sb.Append($", {sourceLine}, {function.ToPath()})");
 
                 if (function.Parameters.Count > 0)
                 {
-                    sb.Append($"  parameters={function.Parameters.Count} (");
+                    sb.Append($" // parameters={function.Parameters.Count} (");
                     for (int i = 0; i < function.Parameters.Count; i++)
                     {
                         var parameter = function.Parameters[i];
@@ -318,7 +331,7 @@ namespace ScriptCacheDumpTest
                         {
                             sb.Append(", ");
                         }
-                        sb.Append($"{parameter.Name} : {GetPath(parameter.Type)}");
+                        sb.Append($"{parameter.Name}: {parameter.Type.ToPath()}");
                     }
                     sb.Append(")");
                 }
@@ -348,7 +361,7 @@ namespace ScriptCacheDumpTest
             var sb = new StringBuilder();
             foreach (var tuple in scriptCacheFile.Definitions
                 .OfType<EnumerationDefinition>()
-                .Select(e => (enumeration: e, path: GetPath(e)))
+                .Select(e => (enumeration: e, path: e.ToPath()))
                 .OrderBy(t => t.path))
             {
                 var (enumeration, path) = tuple;
@@ -368,21 +381,6 @@ namespace ScriptCacheDumpTest
             }
 
             File.WriteAllText("test_enumeration_dump.txt", sb.ToString(), Encoding.UTF8);
-        }
-
-        private static string GetPath(Definition type)
-        {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-            var types = new List<Definition>();
-            while (type != null)
-            {
-                types.Insert(0, type);
-                type = type.Parent;
-            }
-            return string.Join("::", types.Select(t => t.Name).ToArray());
         }
     }
 }
