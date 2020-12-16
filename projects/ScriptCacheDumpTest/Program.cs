@@ -192,6 +192,7 @@ namespace ScriptCacheDumpTest
                 groupStack.AddLast((group, 0));
             }
 
+            int opcodeIndex = 0;
             while (groupStack.Count > 0)
             {
                 var (group, depth) = groupStack.First.Value;
@@ -201,7 +202,7 @@ namespace ScriptCacheDumpTest
 
                 if (instruction.LoadInfo == null)
                 {
-                    sb.Append($"  (@0x?????? ????) @????");
+                    sb.Append($"  (@0x?????? ????) @???? #{opcodeIndex++,-4}");
                 }
                 else
                 {
@@ -220,7 +221,7 @@ namespace ScriptCacheDumpTest
                         relativePosition = loadInfo.BasePosition - function.BodyLoadPosition;
                     }
 
-                    sb.Append($"  (@0x{absolutePosition:X6} {relativePosition,4}) @{loadInfo.Offset,-4}");
+                    sb.Append($"  (@0x{absolutePosition:X6} {relativePosition,4}) @{loadInfo.Offset,-4} #{opcodeIndex++,-4}");
                 }
 
                 sb.Append(" | ");
