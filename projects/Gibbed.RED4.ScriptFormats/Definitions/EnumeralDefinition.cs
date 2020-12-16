@@ -28,7 +28,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
     {
         public override DefinitionType DefinitionType => DefinitionType.Enumeral;
 
-        public ulong Value { get; set; }
+        public long Value { get; set; }
 
         internal override void Serialize(IDefinitionWriter writer)
         {
@@ -37,7 +37,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            writer.WriteValueU64(this.Value);
+            writer.WriteValueS64(this.Value);
         }
 
         internal override void Deserialize(IDefinitionReader reader)
@@ -47,7 +47,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 throw new ArgumentNullException(nameof(reader));
             }
 
-            this.Value = reader.ReadValueU64();
+            this.Value = reader.ReadValueS64();
         }
     }
 }

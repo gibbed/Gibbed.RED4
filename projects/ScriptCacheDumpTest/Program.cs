@@ -396,11 +396,23 @@ namespace ScriptCacheDumpTest
                     sb.AppendLine();
                 }
 
-                sb.AppendLine($"{path} : {enumeration.Size}");
+                sb.AppendLine($"enum {path} // {enumeration.Size}");
+                sb.AppendLine("{");
                 foreach (var enumeral in enumeration.Enumerals)
                 {
-                    sb.AppendLine($"  {enumeral.Name} = {enumeral.Value}");
+                    sb.Append("  ");
+                    if (string.IsNullOrEmpty(enumeral.Name) == true)
+                    {
+                        sb.Append("_ /* blank name */");
+                    }
+                    else
+                    {
+                        sb.Append(enumeral.Name);
+                    }
+
+                    sb.AppendLine($" = {enumeral.Value},");
                 }
+                sb.AppendLine("}");
 
                 previousEnumeration = enumeration;
             }
