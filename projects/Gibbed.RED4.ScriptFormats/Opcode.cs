@@ -70,5 +70,6 @@ namespace Gibbed.RED4.ScriptFormats
         EnumToInt = 82,
         IntToEnum = 83,
         DynamicCast = 84,
+        StructToString = 85,
     }
 }

@@ -174,7 +174,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 { Opcode.EnumToInt, (EnumCast.Read, EnumCast.Write) },
                 { Opcode.IntToEnum, (EnumCast.Read, EnumCast.Write) },
                 { Opcode.DynamicCast, (DynamicCast.Read, DynamicCast.Write) },
-                { (Opcode)85, (_DefinitionRef<NativeDefinition>.Read, _DefinitionRef<NativeDefinition>.Write) },
+                { Opcode.StructToString, (_DefinitionRef<NativeDefinition>.Read, _DefinitionRef<NativeDefinition>.Write) },
                 { (Opcode)86, (_DefinitionRef<NativeDefinition>.Read, _DefinitionRef<NativeDefinition>.Write) },
                 { (Opcode)87, (_DefinitionRef<NativeDefinition>.Read, _DefinitionRef<NativeDefinition>.Write) },
                 { (Opcode)88, default },

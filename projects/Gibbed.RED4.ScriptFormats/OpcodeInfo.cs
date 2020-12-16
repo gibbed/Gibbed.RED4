@@ -132,7 +132,7 @@ namespace Gibbed.RED4.ScriptFormats
                 { Opcode.EnumToInt, new OpcodeInfo(1) },
                 { Opcode.IntToEnum, new OpcodeInfo(1) },
                 { Opcode.DynamicCast, new OpcodeInfo(1) },
-                { (Opcode)85, new OpcodeInfo(1) },
+                { Opcode.StructToString, new OpcodeInfo(1) },
                 { (Opcode)86, new OpcodeInfo(1) },
                 { (Opcode)87, new OpcodeInfo(1) },
                 { (Opcode)88, new OpcodeInfo(1) },
