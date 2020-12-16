@@ -28,6 +28,23 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
     {
         public override DefinitionType DefinitionType => DefinitionType.SourceFile;
 
+        public SourceFileDefinition()
+        {
+            this.Path = "";
+        }
+
+        public SourceFileDefinition(string path)
+        {
+            this.Path = path ?? throw new ArgumentNullException(nameof(path));
+            this.PathHash = FileFormats.Hashing.FNV1a64.Compute(path);
+        }
+
+        public SourceFileDefinition(string path, ulong pathHash)
+        {
+            this.Path = path ?? throw new ArgumentNullException(nameof(path));
+            this.PathHash = pathHash;
+        }
+
         public uint Id { get; set; }
         public ulong PathHash { get; set; }
         public string Path;

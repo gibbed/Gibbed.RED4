@@ -20,34 +20,19 @@
  *    distribution.
  */
 
-using System;
-
-namespace Gibbed.RED4.ScriptFormats.Definitions
+namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    public class EnumeralDefinition : Definition
+    internal static class StringConst
     {
-        public override DefinitionType DefinitionType => DefinitionType.Enumeral;
-
-        public long Value { get; set; }
-
-        internal override void Serialize(IDefinitionWriter writer)
+        public static (object, uint) Read(IDefinitionReader reader)
         {
-            if (writer == null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            writer.WriteValueS64(this.Value);
+            return (reader.ReadStringU32(out var size), 4 + size);
         }
 
-        internal override void Deserialize(IDefinitionReader reader)
+        public static uint Write(object argument, IDefinitionWriter writer)
         {
-            if (reader == null)
-            {
-                throw new ArgumentNullException(nameof(reader));
-            }
-
-            this.Value = reader.ReadValueS64();
+            var size = writer.WriteStringU32((string)argument);
+            return 4 + size;
         }
     }
 }

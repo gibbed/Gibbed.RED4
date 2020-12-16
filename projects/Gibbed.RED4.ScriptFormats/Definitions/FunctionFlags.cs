@@ -32,7 +32,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         Unknown1 = 1u << 1,
         Unknown2 = 1u << 2,
         Unknown3 = 1u << 3,
-        Unknown4 = 1u << 4,
+        IsNative = 1u << 4,
         Unknown5 = 1u << 5,
         Unknown6 = 1u << 6,
         HasReturnValue = 1u << 7,
