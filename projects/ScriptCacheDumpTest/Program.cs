@@ -310,7 +310,17 @@ namespace ScriptCacheDumpTest
 
                 if (function.Parameters.Count > 0)
                 {
-                    sb.Append($"  [parameters={function.Parameters.Count}]");
+                    sb.Append($"  parameters={function.Parameters.Count} (");
+                    for (int i = 0; i < function.Parameters.Count; i++)
+                    {
+                        var parameter = function.Parameters[i];
+                        if (i > 0)
+                        {
+                            sb.Append(", ");
+                        }
+                        sb.Append($"{parameter.Name} : {GetPath(parameter.Type)}");
+                    }
+                    sb.Append(")");
                 }
 
                 sb.AppendLine();
