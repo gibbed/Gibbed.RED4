@@ -66,7 +66,7 @@ namespace ScriptCacheDumpTest
 
         private static void DumpExecCallableFunctions(CacheFile scriptCacheFile)
         {
-            var gameInstanceDefinition = scriptCacheFile.Definitions
+            var gameInstanceDef = scriptCacheFile.Definitions
                             .OfType<NativeDefinition>()
                             .Where(t => t.Name == "GameInstance")
                             .SingleOrDefault();
@@ -78,7 +78,7 @@ namespace ScriptCacheDumpTest
                 .Where(f =>
                     f.Parameters.Count >= 1 &&
                     f.Parameters.Count <= 6 &&
-                    f.Parameters[0].Type == gameInstanceDefinition &&
+                    f.Parameters[0].Type == gameInstanceDef &&
                     f.Parameters.Skip(1).All(p => p.Type == stringType))
                 .ToArray();
             var sb = new StringBuilder();
@@ -263,20 +263,25 @@ namespace ScriptCacheDumpTest
                 sb.Append(string.Join(", ", bytes.Select(b => "0x" + b.ToString("X2")).ToArray()));
                 sb.AppendLine(")");
             }
+            else if (instruction.Op == Opcode.EnumConst)
+            {
+                var (enumeration, enumeral) = (EnumConst)instruction.Argument;
+                sb.AppendLine($" ({enumeration.ToPath()}, {enumeral.ToName()})");
+            }
             else if (instruction.Op == Opcode.LocalVar)
             {
-                var localDefinition = (LocalDefinition)instruction.Argument;
-                sb.AppendLine($" {localDefinition.ToName()} // {localDefinition.Type.ToPath()}");
+                var local = (LocalDefinition)instruction.Argument;
+                sb.AppendLine($" {local.ToName()} // {local.Type.ToPath()}");
             }
             else if (instruction.Op == Opcode.ParamVar)
             {
-                var parameterDefinition = (ParameterDefinition)instruction.Argument;
-                sb.AppendLine($" {parameterDefinition.ToName()} // {parameterDefinition.Type.ToPath()}");
+                var parameter = (ParameterDefinition)instruction.Argument;
+                sb.AppendLine($" {parameter.ToName()} // {parameter.Type.ToPath()}");
             }
             else if (instruction.Op == Opcode.ObjectVar)
             {
-                var propertyDefinition = (PropertyDefinition)instruction.Argument;
-                sb.AppendLine($" {propertyDefinition.ToPath()} // {propertyDefinition.Type.ToPath()}");
+                var property = (PropertyDefinition)instruction.Argument;
+                sb.AppendLine($" {property.ToPath()} // {property.Type.ToPath()}");
             }
             else if (instruction.Op == Opcode.Jump ||
                 instruction.Op == Opcode.JumpIfFalse ||
@@ -298,7 +303,12 @@ namespace ScriptCacheDumpTest
                 {
                     sb.Append($" => {instruction.LoadInfo.Value.Offset + firstCaseOffset}");
                 }
-                sb.AppendLine($", {switchType})");
+                sb.Append($", {switchType.ToPath()}");
+                /*if (switchType.BaseType != null)
+                {
+                    sb.Append($" \/\* {switchType.BaseType.ToPath()} \*\/");
+                }*/
+                sb.AppendLine($")");
             }
             else if (instruction.Op == Opcode.SwitchLabel)
             {
