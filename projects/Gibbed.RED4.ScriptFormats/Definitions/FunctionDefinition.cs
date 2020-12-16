@@ -33,7 +33,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         {
             this.Parameters = new List<ParameterDefinition>();
             this.Locals = new List<LocalDefinition>();
-            this.Body = new List<Instruction>();
+            this.Code = new List<Instruction>();
         }
 
         public Visibility Visibility { get; set; }
@@ -47,8 +47,8 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         public List<LocalDefinition> Locals { get; }
         public uint Unknown98 { get; set; }
         public byte UnknownA0 { get; set; }
-        public long BodyLoadPosition { get; internal set; }
-        public List<Instruction> Body { get; }
+        public long CodeLoadPosition { get; internal set; }
+        public List<Instruction> Code { get; }
 
         private static readonly FunctionFlags KnownFlags =
             FunctionFlags.Unknown0 | FunctionFlags.Unknown1 |
@@ -58,7 +58,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             FunctionFlags.HasReturnValue |
             FunctionFlags.Unknown8 |
             FunctionFlags.HasParameters | FunctionFlags.HasLocals |
-            FunctionFlags.HasBody |
+            FunctionFlags.HasCode |
             FunctionFlags.Unknown12 | FunctionFlags.Unknown13 |
             FunctionFlags.IsConstant | FunctionFlags.Unknown19 |
             FunctionFlags.Unknown20 | FunctionFlags.Unknown21;
@@ -106,14 +106,14 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             {
                 writer.WriteValueU8(this.UnknownA0);
             }
-            if ((this.Flags & FunctionFlags.HasBody) != 0)
+            if ((this.Flags & FunctionFlags.HasCode) != 0)
             {
-                var bodySizePosition = writer.Position;
+                var codeSizePosition = writer.Position;
                 writer.WriteValueU32(uint.MaxValue);
-                var bodySize = Instructions.Write(writer, this.Body);
+                var codeSize = Instructions.Write(writer, this.Code);
                 var endPosition = writer.Position;
-                writer.Position = bodySizePosition;
-                writer.WriteValueU32(bodySize);
+                writer.Position = codeSizePosition;
+                writer.WriteValueU32(codeSize);
                 writer.Position = endPosition;
             }
         }
@@ -174,13 +174,13 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 ? reader.ReadValueU8()
                 : default;
 
-            long bodyPosition = -1;
+            long codePosition = -1;
             Instruction[] instructions;
-            if ((flags & FunctionFlags.HasBody) != 0)
+            if ((flags & FunctionFlags.HasCode) != 0)
             {
-                var bodySize = reader.ReadValueU32();
-                bodyPosition = reader.Position;
-                instructions = Instructions.Read(reader, bodySize);
+                var codeSize = reader.ReadValueU32();
+                codePosition = reader.Position;
+                instructions = Instructions.Read(reader, codeSize);
             }
             else
             {
@@ -189,7 +189,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 
             this.Parameters.Clear();
             this.Locals.Clear();
-            this.Body.Clear();
+            this.Code.Clear();
             this.Visibility = visibility;
             this.Flags = flags;
             this.SourceFile = sourceFile;
@@ -201,8 +201,8 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             this.Locals.AddRange(locals);
             this.Unknown98 = unknown98;
             this.UnknownA0 = unknownA0;
-            this.BodyLoadPosition = bodyPosition;
-            this.Body.AddRange(instructions);
+            this.CodeLoadPosition = codePosition;
+            this.Code.AddRange(instructions);
         }
 
         public override string ToName()

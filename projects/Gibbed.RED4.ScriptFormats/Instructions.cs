@@ -44,10 +44,10 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             return result.ToArray();
         }
 
-        internal static uint Write(IDefinitionWriter writer, IEnumerable<Instruction> body)
+        internal static uint Write(IDefinitionWriter writer, IEnumerable<Instruction> code)
         {
             uint size = 0;
-            foreach (var instruction in body)
+            foreach (var instruction in code)
             {
                 size += InstructionHandlers.Write(instruction, writer);
             }

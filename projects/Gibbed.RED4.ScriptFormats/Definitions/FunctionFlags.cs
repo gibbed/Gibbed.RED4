@@ -39,7 +39,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         Unknown8 = 1u << 8,
         HasParameters = 1 << 9,
         HasLocals = 1 << 10,
-        HasBody = 1u << 11,
+        HasCode = 1u << 11,
         Unknown12 = 1u << 12,
         Unknown13 = 1u << 13,
         IsConstant = 1u << 18,

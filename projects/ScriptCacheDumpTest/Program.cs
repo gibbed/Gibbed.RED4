@@ -110,7 +110,7 @@ namespace ScriptCacheDumpTest
             var sb = new StringBuilder();
             foreach (var function in cache.Definitions
                 .OfType<FunctionDefinition>()
-                .Where(t => t.Flags.HasFlag(FunctionFlags.HasBody))
+                .Where(t => t.Flags.HasFlag(FunctionFlags.HasCode))
                 .OrderBy(f => f.SourceFile?.Path)
                 .ThenBy(f => f.SourceLine))
             {
@@ -169,7 +169,7 @@ namespace ScriptCacheDumpTest
 
             const FunctionFlags ignoredFlags = FunctionFlags.HasReturnValue |
                 FunctionFlags.HasParameters | FunctionFlags.HasLocals |
-                FunctionFlags.HasBody;
+                FunctionFlags.HasCode;
             var flags = function.Flags & ~ignoredFlags;
             if (flags != FunctionFlags.None)
             {
@@ -184,7 +184,7 @@ namespace ScriptCacheDumpTest
                 }
             }
 
-            var groups = InstructionGrouper.GroupBody(cacheFile, function).ToArray();
+            var groups = InstructionGrouper.GroupCode(cacheFile, function).ToArray();
 
             var groupStack = new LinkedList<(InstructionGrouper.Group, int)>();
             foreach (var group in groups)
@@ -213,12 +213,12 @@ namespace ScriptCacheDumpTest
                     if (validate)
                     {
                         absolutePosition = loadInfo.BasePosition + function.LoadPosition;
-                        relativePosition = loadInfo.BasePosition - function.BodyLoadPosition;
+                        relativePosition = loadInfo.BasePosition - function.CodeLoadPosition;
                     }
                     else
                     {
                         absolutePosition = loadInfo.BasePosition;
-                        relativePosition = loadInfo.BasePosition - function.BodyLoadPosition;
+                        relativePosition = loadInfo.BasePosition - function.CodeLoadPosition;
                     }
 
                     sb.Append($"  (@0x{absolutePosition:X6} {relativePosition,4}) @{loadInfo.Offset,-4} #{opcodeIndex++,-4}");
