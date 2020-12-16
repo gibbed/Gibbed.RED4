@@ -263,6 +263,21 @@ namespace ScriptCacheDumpTest
                 sb.Append(string.Join(", ", bytes.Select(b => "0x" + b.ToString("X2")).ToArray()));
                 sb.AppendLine(")");
             }
+            else if (instruction.Op == Opcode.LocalVar)
+            {
+                var localDefinition = (LocalDefinition)instruction.Argument;
+                sb.AppendLine($" {localDefinition.ToName()} // {localDefinition.Type.ToPath()}");
+            }
+            else if (instruction.Op == Opcode.ParamVar)
+            {
+                var parameterDefinition = (ParameterDefinition)instruction.Argument;
+                sb.AppendLine($" {parameterDefinition.ToName()} // {parameterDefinition.Type.ToPath()}");
+            }
+            else if (instruction.Op == Opcode.ObjectVar)
+            {
+                var propertyDefinition = (PropertyDefinition)instruction.Argument;
+                sb.AppendLine($" {propertyDefinition.ToPath()} // {propertyDefinition.Type.ToPath()}");
+            }
             else if (instruction.Op == Opcode.Jump ||
                 instruction.Op == Opcode.JumpIfFalse ||
                 instruction.Op == Opcode.Context)
