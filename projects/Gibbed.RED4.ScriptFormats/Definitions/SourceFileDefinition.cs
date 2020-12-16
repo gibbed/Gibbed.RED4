@@ -21,9 +21,6 @@
  */
 
 using System;
-using System.IO;
-using System.Text;
-using Gibbed.IO;
 
 namespace Gibbed.RED4.ScriptFormats.Definitions
 {
@@ -35,17 +32,28 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         public ulong PathHash { get; set; }
         public string Path;
 
-        internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
+        internal override void Serialize(IDefinitionWriter writer)
         {
-            throw new NotImplementedException();
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            writer.WriteValueU32(this.Id);
+            writer.WriteValueU64(this.PathHash);
+            writer.WriteStringU16(this.Path);
         }
 
-        internal override void Deserialize(Stream input, Endian endian, ICacheReferences references)
+        internal override void Deserialize(IDefinitionReader reader)
         {
-            this.Id = input.ReadValueU32(endian);
-            this.PathHash = input.ReadValueU64(endian);
-            var nameLength = input.ReadValueU16(endian);
-            this.Path = input.ReadString(nameLength, true, Encoding.UTF8);
+            if (reader == null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
+
+            this.Id = reader.ReadValueU32();
+            this.PathHash = reader.ReadValueU64();
+            this.Path = reader.ReadStringU16();
         }
     }
 }

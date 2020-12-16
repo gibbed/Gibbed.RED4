@@ -29,17 +29,19 @@ namespace ScriptCacheDumpTest
 {
     internal class InstructionGrouper
     {
+        private readonly CacheFile _Cache;
         private readonly FunctionDefinition _Function;
         private int _Index;
 
-        private InstructionGrouper(FunctionDefinition function)
+        private InstructionGrouper(CacheFile cache, FunctionDefinition function)
         {
+            this._Cache = cache;
             this._Function = function;
         }
 
-        public static IEnumerable<Group> GroupBody(FunctionDefinition function)
+        public static IEnumerable<Group> GroupBody(CacheFile cache, FunctionDefinition function)
         {
-            var instance = new InstructionGrouper(function);
+            var instance = new InstructionGrouper(cache, function);
             foreach (var group in instance.GroupBody())
             {
                 yield return group;
@@ -49,7 +51,7 @@ namespace ScriptCacheDumpTest
         private IEnumerable<Group> GroupBody()
         {
             var function = this._Function;
-            for (_Index = 0; _Index < function.Body.Length; )
+            for (_Index = 0; _Index < function.Body.Count; )
             {
                 foreach (var group in this.GroupInstruction())
                 {
@@ -61,7 +63,7 @@ namespace ScriptCacheDumpTest
         private IEnumerable<Group> GroupInstruction()
         {
             var body = this._Function.Body;
-            if (_Index >= body.Length)
+            if (_Index >= body.Count)
             {
                 yield break;
             }
@@ -77,17 +79,33 @@ namespace ScriptCacheDumpTest
             }
             else if (instruction.Op == Opcode.Construct)
             {
-                (var parameterCount, _) = ((byte, ClassDefinition))instruction.Argument;
+                var (parameterCount, _) = ((byte, ClassDefinition))instruction.Argument;
                 enumerable = GroupBasicInstruction(parameterCount);
             }
             else if (instruction.Op == Opcode.Call)
             {
-                (_, _, var functionType) = ((short, ushort, FunctionDefinition))instruction.Argument;
-                var parameterCount = functionType.Parameters == null
-                    ? 0
-                    : functionType.Parameters.Length;
+                var (_, _, function) = ((short, ushort, FunctionDefinition))instruction.Argument;
+                var parameterCount = function.Parameters.Count;
                 parameterCount++; // EndCall
                 enumerable = GroupBasicInstruction(parameterCount);
+            }
+            else if (instruction.Op == Opcode.CallName)
+            {
+                // TODO(gibbed): dodgy af
+                /*var (_, _, name) = ((short, ushort, string))instruction.Argument;
+                var candidates = this._Cache.Definitions.Where(d => d.Name == name).ToArray();
+                if (candidates.Length != 1)
+                {
+                    enumerable = GroupBasicInstruction(1);
+                }
+                else
+                {
+                    var function = (FunctionDefinition)candidates[0];
+                    var parameterCount = function.Parameters.Count;
+                    parameterCount++; // EndCall
+                    enumerable = GroupBasicInstruction(parameterCount);
+                }*/
+                enumerable = GroupCallNameInstruction();
             }
             else if (instruction.Op == Opcode.Switch)
             {
@@ -125,6 +143,24 @@ namespace ScriptCacheDumpTest
             }
         }
 
+        private IEnumerable<Group> GroupCallNameInstruction()
+        {
+            var body = _Function.Body;
+            var count = _Function.Body.Count;
+            while (_Index < count)
+            {
+                var instruction = body[_Index];
+                foreach (var group in GroupInstruction())
+                {
+                    yield return group;
+                }
+                if (instruction.Op == Opcode.EndCall)
+                {
+                    yield break;
+                }
+            }
+        }
+
         private IEnumerable<Group> GroupSwitchInstruction()
         {
             foreach (var group in GroupInstruction())
@@ -133,7 +169,7 @@ namespace ScriptCacheDumpTest
             }
 
             var body = _Function.Body;
-            var count = _Function.Body.Length;
+            var count = _Function.Body.Count;
             while (_Index < count)
             {
                 var instruction = body[_Index];
@@ -163,7 +199,7 @@ namespace ScriptCacheDumpTest
             }
 
             var body = _Function.Body;
-            var count = _Function.Body.Length;
+            var count = _Function.Body.Count;
             while (_Index < count)
             {
                 var instruction = body[_Index];
@@ -186,7 +222,7 @@ namespace ScriptCacheDumpTest
         private IEnumerable<Group> GroupSwitchDefaultInstruction()
         {
             var body = _Function.Body;
-            var count = _Function.Body.Length;
+            var count = _Function.Body.Count;
             while (_Index < count)
             {
                 var instruction = body[_Index];

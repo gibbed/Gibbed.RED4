@@ -58,7 +58,14 @@ namespace Gibbed.RED4.ScriptFormats.Cache
 
         public static void Write(Stream output, DefinitionHeader instance, Endian endian)
         {
-            throw new NotImplementedException();
+            output.WriteValueU32(instance.NameIndex, endian);
+            output.WriteValueU32(instance.ParentIndex, endian);
+            output.WriteValueU32(instance.DataOffset, endian);
+            output.WriteValueU32(instance.DataSize, endian);
+            output.WriteValueU8((byte)instance.Type);
+            output.WriteValueU8(instance.Unknown11);
+            output.WriteValueU8(instance.Unknown12);
+            output.WriteValueU8(instance.Unknown13);
         }
 
         public void Write(Stream output, Endian endian)
@@ -82,7 +89,7 @@ namespace Gibbed.RED4.ScriptFormats.Cache
             {
                 sb.Append(Names != null
                     ? $"name=\"{Names[this.NameIndex]}\" "
-                    : $"name_index={this.NameIndex}");
+                    : $"name_index={this.NameIndex} ");
             }
             sb.Append($"data=(@{this.DataOffset:X} {this.DataSize}) {this.Unknown11} {this.Unknown12} {this.Unknown13}");
             return sb.ToString();

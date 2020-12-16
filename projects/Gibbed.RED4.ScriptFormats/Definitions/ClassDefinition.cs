@@ -21,55 +21,94 @@
  */
 
 using System;
-using System.IO;
-using Gibbed.IO;
+using System.Collections.Generic;
 
 namespace Gibbed.RED4.ScriptFormats.Definitions
 {
     public class ClassDefinition : Definition
     {
+        public override DefinitionType DefinitionType => DefinitionType.Class;
+
+        public ClassDefinition()
+        {
+            this.Functions = new List<FunctionDefinition>();
+            this.Unknown20s = new List<PropertyDefinition>();
+            this.Unknown30s = new List<PropertyDefinition>();
+        }
+
+        public Visibility Visibility { get; set; }
+        public ClassFlags Flags { get; set; }
+        public ClassDefinition BaseClass { get; set; }
+        public List<FunctionDefinition> Functions { get; }
+        public List<PropertyDefinition> Unknown20s { get; }
+        public List<PropertyDefinition> Unknown30s { get; }
+
         private static readonly ClassFlags KnownFlags =
             ClassFlags.Unknown0 | ClassFlags.IsAbstract |
             ClassFlags.Unknown2 | ClassFlags.IsClass |
             ClassFlags.HasFunctions | ClassFlags.Unknown5 |
             ClassFlags.IsImportOnly | ClassFlags.Unknown8;
 
-        public override DefinitionType DefinitionType => DefinitionType.Enumeral;
-
-        internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
+        internal override void Serialize(IDefinitionWriter writer)
         {
-            throw new NotImplementedException();
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            writer.WriteValueU8((byte)this.Visibility);
+            writer.WriteValueU16((ushort)this.Flags);
+            writer.WriteReference(this.BaseClass);
+            if ((this.Flags & ClassFlags.HasFunctions) != 0)
+            {
+                writer.WriteReferences(this.Functions);
+            }
+            if ((this.Flags & ClassFlags.Unknown5) != 0)
+            {
+                writer.WriteReferences(this.Unknown20s);
+            }
+            if ((this.Flags & ClassFlags.Unknown8) != 0)
+            {
+                writer.WriteReferences(this.Unknown30s);
+            }
         }
 
-        internal override void Deserialize(Stream input, Endian endian, ICacheReferences references)
+        internal override void Deserialize(IDefinitionReader reader)
         {
-            var visibility = (Visibility)input.ReadValueU8();
+            if (reader == null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
 
-            var flags = (ClassFlags)input.ReadValueU16();
+            var visibility = (Visibility)reader.ReadValueU8();
+
+            var flags = (ClassFlags)reader.ReadValueU16();
             var unknownFlags = flags & ~KnownFlags;
             if (unknownFlags != ClassFlags.None)
             {
                 throw new FormatException();
             }
 
-            var baseClassIndex = input.ReadValueU32(endian);
-            var baseClass = references.GetDefinition<ClassDefinition>(baseClassIndex);
-
+            var baseClass = reader.ReadReference<ClassDefinition>();
             var functions = (flags & ClassFlags.HasFunctions) != 0
-                ? ReadDefinitionReferenceArray<FunctionDefinition>(input, endian, references)
-                : null;
+                ? reader.ReadReferences<FunctionDefinition>()
+                : new FunctionDefinition[0];
+            var unknown20s = (flags & ClassFlags.Unknown5) != 0
+                ? reader.ReadReferences<PropertyDefinition>()
+                : new PropertyDefinition[0];
+            var unknown30s = (flags & ClassFlags.Unknown8) != 0
+                ? reader.ReadReferences<PropertyDefinition>()
+                : new PropertyDefinition[0];
 
-            Definition[] unknown20s;
-            if ((flags & ClassFlags.Unknown5) != 0)
-            {
-                unknown20s = ReadDefinitionReferenceArray<PropertyDefinition>(input, endian, references);
-            }
-
-            Definition[] unknown30s;
-            if ((flags & ClassFlags.Unknown8) != 0)
-            {
-                unknown30s = ReadDefinitionReferenceArray<PropertyDefinition>(input, endian, references);
-            }
+            this.Functions.Clear();
+            this.Unknown20s.Clear();
+            this.Unknown30s.Clear();
+            this.Visibility = visibility;
+            this.Flags = flags;
+            this.BaseClass = baseClass;
+            this.Functions.AddRange(functions);
+            this.Unknown20s.AddRange(unknown20s);
+            this.Unknown30s.AddRange(unknown30s);
         }
     }
 }

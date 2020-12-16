@@ -76,15 +76,15 @@ namespace Gibbed.RED4.ScriptFormats
                 { Opcode.RefProperty, new OpcodeInfo(0) },
                 { (Opcode)27, new OpcodeInfo(0) },
                 { Opcode.Switch, new OpcodeInfo(-1) }, // special
-                { Opcode.SwitchCase, new OpcodeInfo(-1) },
-                { Opcode.SwitchDefault, new OpcodeInfo(-1) },
+                { Opcode.SwitchCase, new OpcodeInfo(-1) }, // special
+                { Opcode.SwitchDefault, new OpcodeInfo(-1) }, // special
                 { Opcode.Jump, new OpcodeInfo(0) },
                 { Opcode.JumpFalse, new OpcodeInfo(1) },
                 { (Opcode)33, new OpcodeInfo(1) },
                 { (Opcode)34, new OpcodeInfo(2) },
-                { Opcode.Construct, new OpcodeInfo(-1) },
-                { Opcode.Call, new OpcodeInfo(-1) },
-                { Opcode.NativeCall, new OpcodeInfo(0) }, // special  TODO(gibbed): not actually correct
+                { Opcode.Construct, new OpcodeInfo(-1) }, // special
+                { Opcode.Call, new OpcodeInfo(-1) }, // special
+                { Opcode.CallName, new OpcodeInfo(-1) }, // special
                 { Opcode.EndCall, new OpcodeInfo(0) },
                 { Opcode.ReturnWithValue, new OpcodeInfo(1) },
                 { (Opcode)40, new OpcodeInfo(1) },

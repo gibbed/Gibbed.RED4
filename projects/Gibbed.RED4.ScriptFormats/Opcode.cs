@@ -55,7 +55,7 @@ namespace Gibbed.RED4.ScriptFormats
         JumpFalse = 32,
         Construct = 35,
         Call = 36,
-        NativeCall = 37,
+        CallName = 37,
         EndCall = 38,
         ReturnWithValue = 39,
         LoadProperty = 40,

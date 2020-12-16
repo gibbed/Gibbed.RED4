@@ -20,21 +20,34 @@
  *    distribution.
  */
 
+using System.Collections.Generic;
+
 namespace Gibbed.RED4.ScriptFormats
 {
-    internal interface ICacheReferences
+    internal interface IDefinitionWriter
     {
-        Definition GetDefinition(uint index);
-        T GetDefinition<T>(uint index) where T : Definition;
-        uint PutDefinition(Definition instance);
+        long Position { get; set; }
 
-        string GetName(uint index);
-        uint PutName(string value);
-
-        string GetTweakDBId(uint index);
-        uint PutTweakDBId(string value);
-
-        string GetResource(uint index);
-        uint PutResource(string value);
+        void WriteValueB8(bool value);
+        void WriteValueS8(sbyte value);
+        void WriteValueS16(short value);
+        void WriteValueS32(int value);
+        void WriteValueS64(long value);
+        void WriteValueU8(byte value);
+        void WriteValueU16(ushort value);
+        void WriteValueU32(uint value);
+        void WriteValueU64(ulong value);
+        void WriteValueF32(float value);
+        void WriteValueF64(double value);
+        ushort WriteStringU16(string value);
+        uint WriteStringU32(string value);
+        void WriteBytes(byte[] value);
+        void WriteReference(Definition value);
+        void WriteReferences(IList<Definition> list);
+        void WriteReferences<T>(IList<T> list)
+            where T : Definition;
+        void WriteName(string value);
+        void WriteTweakDBId(string value);
+        void WriteResource(string value);
     }
 }

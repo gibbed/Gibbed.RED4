@@ -36,16 +36,31 @@ namespace ScriptCacheDumpTest
         {
             const bool validate = true;
 
-            CacheFile scriptCacheFile;
+            CacheFile cache;
             var fileBytes = File.ReadAllBytes(args[0]);
             using (var input = new MemoryStream(fileBytes, false))
             {
-                scriptCacheFile = CacheFile.Load(input, validate);
+                cache = CacheFile.Load(input, validate);
             }
 
-            DumpExecCallableFunctions(scriptCacheFile);
-            DumpFunctions(scriptCacheFile, validate);
-            DumpEnumerations(scriptCacheFile);
+            byte[] testCacheBytes;
+            using (var output = new MemoryStream())
+            {
+                cache.Save(output);
+                output.Flush();
+                testCacheBytes = output.ToArray();
+            }
+
+            File.WriteAllBytes("test_roundtrip.redscripts", testCacheBytes);
+            CacheFile testCache;
+            using (var input = new MemoryStream(testCacheBytes, false))
+            {
+                testCache = CacheFile.Load(input, validate);
+            }
+
+            DumpExecCallableFunctions(cache);
+            DumpFunctions(cache, validate);
+            DumpEnumerations(cache);
         }
 
         private static void DumpExecCallableFunctions(CacheFile scriptCacheFile)
@@ -60,9 +75,8 @@ namespace ScriptCacheDumpTest
             var candidates = scriptCacheFile.Definitions
                 .OfType<FunctionDefinition>()
                 .Where(f =>
-                    f.Parameters != null &&
-                    f.Parameters.Length >= 1 &&
-                    f.Parameters.Length <= 6 &&
+                    f.Parameters.Count >= 1 &&
+                    f.Parameters.Count <= 6 &&
                     f.Parameters[0].Type == gameInstanceDefinition &&
                     f.Parameters.Skip(1).All(p => p.Type == stringType))
                 .ToArray();
@@ -74,7 +88,7 @@ namespace ScriptCacheDumpTest
             {
                 var (function, path) = tuple;
                 sb.Append($"{path}(");
-                for (int i = 1; i < function.Parameters.Length; i++)
+                for (int i = 1; i < function.Parameters.Count; i++)
                 {
                     var parameter = function.Parameters[i];
                     if (i > 1)
@@ -88,12 +102,12 @@ namespace ScriptCacheDumpTest
             File.WriteAllText("exec_callable_script_functions.txt", sb.ToString());
         }
 
-        private static void DumpFunctions(CacheFile scriptCacheFile, bool validate)
+        private static void DumpFunctions(CacheFile cache, bool validate)
         {
             string currentSourcePath = null;
             FunctionDefinition previousFunction = null;
             var sb = new StringBuilder();
-            foreach (var function in scriptCacheFile.Definitions
+            foreach (var function in cache.Definitions
                 .OfType<FunctionDefinition>()
                 .Where(t => t.Flags.HasFlag(FunctionFlags.HasBody))
                 .OrderBy(f => f.SourceFile?.Path)
@@ -117,14 +131,14 @@ namespace ScriptCacheDumpTest
                     sb.AppendLine();
                 }
 
-                DumpFunction(function, sb, validate);
+                DumpFunction(cache, function, sb, validate);
                 previousFunction = function;
             }
 
             File.WriteAllText("test_function_dump.txt", sb.ToString(), Encoding.UTF8);
         }
 
-        private static void DumpFunction(FunctionDefinition function, StringBuilder sb, bool validate)
+        private static void DumpFunction(CacheFile cacheFile, FunctionDefinition function, StringBuilder sb, bool validate)
         {
             if (function.ReturnType == null)
             {
@@ -157,7 +171,7 @@ namespace ScriptCacheDumpTest
                 }
             }
 
-            var groups = InstructionGrouper.GroupBody(function).ToArray();
+            var groups = InstructionGrouper.GroupBody(cacheFile, function).ToArray();
 
             var groupStack = new LinkedList<(InstructionGrouper.Group, int)>();
             foreach (var group in groups)
@@ -169,7 +183,7 @@ namespace ScriptCacheDumpTest
             Opcode? previousOp = null;
             while (groupStack.Count > 0)
             {
-                (var group, var depth) = groupStack.First.Value;
+                var (group, depth) = groupStack.First.Value;
                 groupStack.RemoveFirst();
 
                 var instruction = group.Instruction;
@@ -260,7 +274,7 @@ namespace ScriptCacheDumpTest
             }
             else if (instruction.Op == Opcode.Switch)
             {
-                (var switchType, var jumpOffset) = ((NativeDefinition, short))instruction.Argument;
+                var (switchType, jumpOffset) = ((NativeDefinition, short))instruction.Argument;
                 sb.Append($" ({jumpOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
                 {
@@ -270,7 +284,7 @@ namespace ScriptCacheDumpTest
             }
             else if (instruction.Op == Opcode.SwitchCase)
             {
-                (var defaultJumpOffset, var caseJumpOffset) = ((short, short))instruction.Argument;
+                var (defaultJumpOffset, caseJumpOffset) = ((short, short))instruction.Argument;
                 sb.Append($" (false: {defaultJumpOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
                 {
@@ -295,32 +309,32 @@ namespace ScriptCacheDumpTest
             }
             else if (instruction.Op == Opcode.Call)
             {
-                (var jumpOffset, var unknown, var functionType) = ((short, ushort, FunctionDefinition))instruction.Argument;
+                var (jumpOffset, unknown, function) = ((short, ushort, FunctionDefinition))instruction.Argument;
 
                 sb.Append($" ({jumpOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
                 {
                     sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
                 }
-                sb.Append($", {unknown}, {functionType})");
+                sb.Append($", {unknown}, {function})");
 
-                if (functionType.Parameters != null && functionType.Parameters.Length > 0)
+                if (function.Parameters.Count > 0)
                 {
-                    sb.Append($"  [parameters={functionType.Parameters.Length}]");
+                    sb.Append($"  [parameters={function.Parameters.Count}]");
                 }
 
                 sb.AppendLine();
             }
-            else if (instruction.Op == (Opcode)37)
+            else if (instruction.Op == Opcode.CallName)
             {
-                (var jumpOffset, var unknown, var unknownIndex) = ((short, ushort, uint))instruction.Argument;
+                var (jumpOffset, unknown, name) = ((short, ushort, string))instruction.Argument;
 
                 sb.Append($" ({jumpOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
                 {
                     sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
                 }
-                sb.AppendLine($", {unknown}, {unknownIndex})");
+                sb.AppendLine($", {unknown}, {name})");
             }
             else
             {

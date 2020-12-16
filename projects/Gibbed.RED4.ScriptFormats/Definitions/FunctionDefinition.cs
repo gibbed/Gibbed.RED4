@@ -21,13 +21,35 @@
  */
 
 using System;
-using System.IO;
-using Gibbed.IO;
+using System.Collections.Generic;
 
 namespace Gibbed.RED4.ScriptFormats.Definitions
 {
     public class FunctionDefinition : Definition
     {
+        public override DefinitionType DefinitionType => DefinitionType.Function;
+
+        public FunctionDefinition()
+        {
+            this.Parameters = new List<ParameterDefinition>();
+            this.Locals = new List<LocalDefinition>();
+            this.Body = new List<Instruction>();
+        }
+
+        public Visibility Visibility { get; set; }
+        public FunctionFlags Flags { get; set; }
+        public SourceFileDefinition SourceFile { get; set; }
+        public uint SourceLine { get; set; }
+        public Definition ReturnType { get; set; }
+        public bool Unknown50 { get; set; }
+        public Definition Unknown58 { get; set; }
+        public List<ParameterDefinition> Parameters { get; }
+        public List<LocalDefinition> Locals { get; }
+        public uint Unknown98 { get; set; }
+        public byte UnknownA0 { get; set; }
+        public long BodyLoadPosition { get; internal set; }
+        public List<Instruction> Body { get; }
+
         private static readonly FunctionFlags KnownFlags =
             FunctionFlags.Unknown0 | FunctionFlags.Unknown1 |
             FunctionFlags.Unknown2 | FunctionFlags.Unknown3 |
@@ -41,32 +63,71 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             FunctionFlags.IsConstant | FunctionFlags.Unknown19 |
             FunctionFlags.Unknown20 | FunctionFlags.Unknown21;
 
-        public override DefinitionType DefinitionType => DefinitionType.Function;
-
-        public Visibility Visibility { get; set; }
-        public FunctionFlags Flags { get; set; }
-        public SourceFileDefinition SourceFile { get; set; }
-        public uint SourceLine { get; set; }
-        public Definition ReturnType { get; set; }
-        public bool Unknown50 { get; set; }
-        public Definition Unknown58 { get; set; }
-        public ParameterDefinition[] Parameters { get; set; }
-        public LocalDefinition[] Locals { get; set; }
-        public uint Unknown98 { get; set; }
-        public byte UnknownA0 { get; set; }
-        public long BodyLoadPosition { get; internal set; }
-        public Instruction[] Body { get; set; }
-
-        internal override void Serialize(Stream output, Endian endian, ICacheReferences references)
+        internal override void Serialize(IDefinitionWriter writer)
         {
-            throw new NotImplementedException();
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            writer.WriteValueU8((byte)this.Visibility);
+            writer.WriteValueU32((uint)this.Flags);
+
+            if ((this.Flags & FunctionFlags.Unknown4) == 0)
+            {
+                writer.WriteReference(this.SourceFile);
+                writer.WriteValueU32(this.SourceLine);
+            }
+
+            if ((this.Flags & FunctionFlags.HasReturnValue) != 0)
+            {
+                writer.WriteReference(this.ReturnType);
+                writer.WriteValueB8(this.Unknown50);
+            }
+
+            if ((this.Flags & FunctionFlags.Unknown8) != 0)
+            {
+                writer.WriteReference(this.Unknown58);
+            }
+
+            if ((this.Flags & FunctionFlags.HasParameters) != 0)
+            {
+                writer.WriteReferences(this.Parameters);
+            }
+            if ((this.Flags & FunctionFlags.HasLocals) != 0)
+            {
+                writer.WriteReferences(this.Locals);
+            }
+            if ((this.Flags & FunctionFlags.Unknown6) != 0)
+            {
+                writer.WriteValueU32(this.Unknown98);
+            }
+            if ((this.Flags & FunctionFlags.Unknown12) != 0)
+            {
+                writer.WriteValueU8(this.UnknownA0);
+            }
+            if ((this.Flags & FunctionFlags.HasBody) != 0)
+            {
+                var bodySizePosition = writer.Position;
+                writer.WriteValueU32(uint.MaxValue);
+                var bodySize = Instructions.Write(writer, this.Body);
+                var endPosition = writer.Position;
+                writer.Position = bodySizePosition;
+                writer.WriteValueU32(bodySize);
+                writer.Position = endPosition;
+            }
         }
 
-        internal override void Deserialize(Stream input, Endian endian, ICacheReferences references)
+        internal override void Deserialize(IDefinitionReader reader)
         {
-            var visibility = (Visibility)input.ReadValueU8();
-            
-            var flags = (FunctionFlags)input.ReadValueU32(endian);
+            if (reader == null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
+
+            var visibility = (Visibility)reader.ReadValueU8();
+
+            var flags = (FunctionFlags)reader.ReadValueU32();
             var unknownFlags = flags & ~KnownFlags;
             if (unknownFlags != FunctionFlags.None)
             {
@@ -74,97 +135,74 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             }
 
             SourceFileDefinition sourceFile;
-            uint unknownC0;
+            uint sourceLine;
             if ((flags & FunctionFlags.Unknown4) == 0)
             {
-                var sourceFileIndex = input.ReadValueU32(endian);
-                sourceFile = references.GetDefinition<SourceFileDefinition>(sourceFileIndex);
-                unknownC0 = input.ReadValueU32(endian);
+                sourceFile = reader.ReadReference<SourceFileDefinition>();
+                sourceLine = reader.ReadValueU32();
             }
             else
             {
                 sourceFile = null;
-                unknownC0 = 0;
+                sourceLine = 0;
             }
 
             Definition returnType;
             bool unknown50;
-            if ((flags & FunctionFlags.HasReturnValue) == 0)
+            if ((flags & FunctionFlags.HasReturnValue) != 0)
+            {
+                returnType = reader.ReadReference();
+                unknown50 = reader.ReadValueB8();
+            }
+            else
             {
                 returnType = null;
                 unknown50 = false;
             }
-            else
-            {
-                var returnTypeIndex = input.ReadValueU32(endian);
-                returnType = references.GetDefinition(returnTypeIndex);
-                unknown50 = input.ReadValueB8();
-            }
 
-            Definition unknown58;
-            if ((flags & FunctionFlags.Unknown8) == 0)
-            {
-                unknown58 = null;
-            }
-            else
-            {
-                var unknown58Index = input.ReadValueU32(endian);
-                unknown58 = references.GetDefinition(unknown58Index);
-            }
-
-            ParameterDefinition[] parameters;
-            if ((flags & FunctionFlags.HasParameters) == 0)
-            {
-                parameters = null;
-            }
-            else
-            {
-                parameters = ReadDefinitionReferenceArray<ParameterDefinition>(input, endian, references);
-            }
-
-            LocalDefinition[] locals;
-            if ((flags & FunctionFlags.HasLocals) == 0)
-            {
-                locals = null;
-            }
-            else
-            {
-                locals = ReadDefinitionReferenceArray<LocalDefinition>(input, endian, references);
-            }
-
-            uint unknown98 = (flags & FunctionFlags.Unknown6) != 0
-                ? input.ReadValueU32(endian)
+            var unknown58 = (flags & FunctionFlags.Unknown8) != 0 ? reader.ReadReference() : null;
+            var parameters = (flags & FunctionFlags.HasParameters) != 0
+                ? reader.ReadReferences<ParameterDefinition>()
+                : new ParameterDefinition[0];
+            var locals = (flags & FunctionFlags.HasLocals) != 0
+                ? reader.ReadReferences<LocalDefinition>()
+                : new LocalDefinition[0];
+            var unknown98 = (flags & FunctionFlags.Unknown6) != 0
+                ? reader.ReadValueU32()
                 : default;
-            byte unknownA0 = (flags & FunctionFlags.Unknown12) != 0
-                ? input.ReadValueU8()
+            var unknownA0 = (flags & FunctionFlags.Unknown12) != 0
+                ? reader.ReadValueU8()
                 : default;
 
             long bodyPosition = -1;
             Instruction[] instructions;
-            if ((flags & FunctionFlags.HasBody) == 0)
+            if ((flags & FunctionFlags.HasBody) != 0)
             {
-                instructions = null;
+                var bodySize = reader.ReadValueU32();
+                bodyPosition = reader.Position;
+                instructions = Instructions.Read(reader, bodySize);
             }
             else
             {
-                var bodySize = input.ReadValueU32(endian);
-                bodyPosition = input.Position;
-                instructions = Instructions.Read(input, bodySize, endian, references);
+                instructions = new Instruction[0];
             }
 
+            this.Parameters.Clear();
+            this.Locals.Clear();
+            this.Body.Clear();
             this.Visibility = visibility;
             this.Flags = flags;
             this.SourceFile = sourceFile;
-            this.SourceLine = unknownC0;
+            this.SourceLine = sourceLine;
             this.ReturnType = returnType;
             this.Unknown50 = unknown50;
             this.Unknown58 = unknown58;
-            this.Parameters = parameters;
-            this.Locals = locals;
+            this.Parameters.AddRange(parameters);
+            this.Locals.AddRange(locals);
             this.Unknown98 = unknown98;
             this.UnknownA0 = unknownA0;
             this.BodyLoadPosition = bodyPosition;
-            this.Body = instructions;
+            this.Body.AddRange(instructions);
         }
     }
 }
