@@ -36,7 +36,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 InstructionLoadInfo loadInfo;
                 loadInfo.BasePosition = reader.Position;
                 loadInfo.Offset = i;
-                var (instruction, size) = InstructionReaders.Read(reader);
+                var (instruction, size) = InstructionHandlers.Read(reader);
                 instruction.LoadInfo = loadInfo;
                 result.Add(instruction);
                 i += size;
@@ -49,7 +49,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             uint size = 0;
             foreach (var instruction in body)
             {
-                size += InstructionWriters.Write(instruction, writer);
+                size += InstructionHandlers.Write(instruction, writer);
             }
             return size;
         }

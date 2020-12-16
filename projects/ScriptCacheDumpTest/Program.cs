@@ -27,6 +27,7 @@ using System.Linq;
 using System.Text;
 using Gibbed.RED4.ScriptFormats;
 using Gibbed.RED4.ScriptFormats.Definitions;
+using Gibbed.RED4.ScriptFormats.Instructions;
 
 namespace ScriptCacheDumpTest
 {
@@ -65,7 +66,7 @@ namespace ScriptCacheDumpTest
 
         private static void DumpExecCallableFunctions(CacheFile scriptCacheFile)
         {
-            var gameInstanceDefinition = scriptCacheFile.Definitions
+            var gameInstanceDef = scriptCacheFile.Definitions
                             .OfType<NativeDefinition>()
                             .Where(t => t.Name == "GameInstance")
                             .SingleOrDefault();
@@ -77,12 +78,12 @@ namespace ScriptCacheDumpTest
                 .Where(f =>
                     f.Parameters.Count >= 1 &&
                     f.Parameters.Count <= 6 &&
-                    f.Parameters[0].Type == gameInstanceDefinition &&
+                    f.Parameters[0].Type == gameInstanceDef &&
                     f.Parameters.Skip(1).All(p => p.Type == stringType))
                 .ToArray();
             var sb = new StringBuilder();
             foreach (var tuple in candidates
-                .Select(c => (function: c, path: GetPath(c)))
+                .Select(c => (function: c, path: c.ToPath()))
                 .Where(t => t.function.Parent == null)
                 .OrderBy(t => t.path))
             {
@@ -104,7 +105,7 @@ namespace ScriptCacheDumpTest
 
         private static void DumpFunctions(CacheFile cache, bool validate)
         {
-            string currentSourcePath = null;
+            string currentSourcePath = "***DUMP FUNCTIONS***";
             FunctionDefinition previousFunction = null;
             var sb = new StringBuilder();
             foreach (var function in cache.Definitions
@@ -140,34 +141,46 @@ namespace ScriptCacheDumpTest
 
         private static void DumpFunction(CacheFile cacheFile, FunctionDefinition function, StringBuilder sb, bool validate)
         {
-            if (function.ReturnType == null)
-            {
-                sb.Append("void ");
-            }
-            else
-            {
-                sb.Append($"{GetPath(function.ReturnType)} ");
-            }
+            sb.Append("function ");
 
-            sb.AppendLine(GetPath(function));
+            sb.Append(function.ToPath());
 
-            if (function.Flags != FunctionFlags.None)
-            {
-                sb.AppendLine($"  // Flags : {function.Flags}");
-            }
+            sb.Append("(");
 
-            if (function.Parameters != null)
+            for (int i = 0; i < function.Parameters.Count; i++)
             {
-                foreach (var parameter in function.Parameters)
+                var parameter = function.Parameters[i];
+                if (i > 0)
                 {
-                    sb.AppendLine($"  // {parameter} : {parameter.Type}");
+                    sb.Append(", ");
                 }
+                sb.Append($"{parameter.ToName()}: {parameter.Type.ToPath()}");
             }
+
+            sb.Append(")");
+
+            if (function.ReturnType != null)
+            {
+                sb.Append($" : {function.ReturnType.ToPath()} ");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("{");
+
+            const FunctionFlags ignoredFlags = FunctionFlags.HasReturnValue |
+                FunctionFlags.HasParameters | FunctionFlags.HasLocals |
+                FunctionFlags.HasBody;
+            var flags = function.Flags & ~ignoredFlags;
+            if (flags != FunctionFlags.None)
+            {
+                sb.AppendLine($"  // Flags : {flags}");
+            }
+
             if (function.Locals != null)
             {
                 foreach (var local in function.Locals)
                 {
-                    sb.AppendLine($"  // {local} : {local.Type}");
+                    sb.AppendLine($"  var {local.ToName()} : {local.Type.ToPath()};");
                 }
             }
 
@@ -188,19 +201,9 @@ namespace ScriptCacheDumpTest
 
                 var instruction = group.Instruction;
 
-                if (previousOp == Opcode.NoOperation || previousOp == Opcode.ReturnWithValue)
-                {
-                    if (instruction.Op != Opcode.Switch &&
-                        instruction.Op != Opcode.SwitchCase &&
-                        instruction.Op != Opcode.SwitchDefault)
-                    {
-                        //sb.AppendLine();
-                    }
-                }
-
                 if (instruction.LoadInfo == null)
                 {
-                    sb.Append($"  (@0x?????? ????) @????");
+                    sb.Append($"  (@0x?????? ????) @???? OP{opcodeIdx++,-4}");
                 }
                 else
                 {
@@ -231,6 +234,8 @@ namespace ScriptCacheDumpTest
                     groupStack.AddFirst((child, depth + 1));
                 }
             }
+
+            sb.AppendLine("}");
         }
 
         private static void DumpInstruction(Instruction instruction, StringBuilder sb, int depth)
@@ -260,9 +265,29 @@ namespace ScriptCacheDumpTest
                 sb.Append(string.Join(", ", bytes.Select(b => "0x" + b.ToString("X2")).ToArray()));
                 sb.AppendLine(")");
             }
+            else if (instruction.Op == Opcode.EnumConst)
+            {
+                var (enumeration, enumeral) = (EnumConst)instruction.Argument;
+                sb.AppendLine($" ({enumeration.ToPath()}, {enumeral.ToName()})");
+            }
+            else if (instruction.Op == Opcode.LocalVar)
+            {
+                var local = (LocalDefinition)instruction.Argument;
+                sb.AppendLine($" {local.ToName()} // {local.Type.ToPath()}");
+            }
+            else if (instruction.Op == Opcode.ParamVar)
+            {
+                var parameter = (ParameterDefinition)instruction.Argument;
+                sb.AppendLine($" {parameter.ToName()} // {parameter.Type.ToPath()}");
+            }
+            else if (instruction.Op == Opcode.ObjectVar)
+            {
+                var property = (PropertyDefinition)instruction.Argument;
+                sb.AppendLine($" {property.ToPath()} // {property.Type.ToPath()}");
+            }
             else if (instruction.Op == Opcode.Jump ||
-                instruction.Op == Opcode.JumpFalse ||
-                instruction.Op == (Opcode)41)
+                instruction.Op == Opcode.JumpIfFalse ||
+                instruction.Op == Opcode.Context)
             {
                 var jumpOffset = (short)instruction.Argument;
                 sb.Append($" {jumpOffset:+#;-#}");
@@ -274,30 +299,35 @@ namespace ScriptCacheDumpTest
             }
             else if (instruction.Op == Opcode.Switch)
             {
-                var (switchType, jumpOffset) = ((NativeDefinition, short))instruction.Argument;
-                sb.Append($" ({jumpOffset:+#;-#}");
+                var (switchType, firstCaseOffset) = (Switch)instruction.Argument;
+                sb.Append($" ({firstCaseOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
                 {
-                    sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
+                    sb.Append($" => {instruction.LoadInfo.Value.Offset + firstCaseOffset}");
                 }
-                sb.AppendLine($", {switchType})");
+                sb.Append($", {switchType.ToPath()}");
+                /*if (switchType.BaseType != null)
+                {
+                    sb.Append($" \/\* {switchType.BaseType.ToPath()} \*\/");
+                }*/
+                sb.AppendLine($")");
             }
-            else if (instruction.Op == Opcode.SwitchCase)
+            else if (instruction.Op == Opcode.SwitchLabel)
             {
-                var (defaultJumpOffset, caseJumpOffset) = ((short, short))instruction.Argument;
-                sb.Append($" (false: {defaultJumpOffset:+#;-#}");
+                var (falseOffset, trueOffset) = (SwitchLabel)instruction.Argument;
+                sb.Append($" (false: {falseOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
                 {
-                    sb.Append($" => {instruction.LoadInfo.Value.Offset + defaultJumpOffset}");
+                    sb.Append($" => {instruction.LoadInfo.Value.Offset + falseOffset}");
                 }
-                sb.Append($", true: {caseJumpOffset:+#;-#}");
+                sb.Append($", true: {trueOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
                 {
-                    sb.Append($" => {instruction.LoadInfo.Value.Offset + caseJumpOffset}");
+                    sb.Append($" => {instruction.LoadInfo.Value.Offset + trueOffset}");
                 }
                 sb.AppendLine(")");
             }
-            else if (instruction.Op == (Opcode)33)
+            else if (instruction.Op == Opcode.Skip)
             {
                 var jumpOffset = (short)instruction.Argument;
                 sb.Append($" {jumpOffset:+#;-#}");
@@ -307,27 +337,37 @@ namespace ScriptCacheDumpTest
                 }
                 sb.AppendLine();
             }
-            else if (instruction.Op == Opcode.Call)
+            else if (instruction.Op == Opcode.FinalFunc)
             {
-                var (jumpOffset, unknown, function) = ((short, ushort, FunctionDefinition))instruction.Argument;
+                var (jumpOffset, sourceLine, function) = (FinalFunc)instruction.Argument;
 
                 sb.Append($" ({jumpOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
                 {
                     sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
                 }
-                sb.Append($", {unknown}, {function})");
+                sb.Append($", {sourceLine}, {function.ToPath()})");
 
                 if (function.Parameters.Count > 0)
                 {
-                    sb.Append($"  [parameters={function.Parameters.Count}]");
+                    sb.Append($" // parameters={function.Parameters.Count} (");
+                    for (int i = 0; i < function.Parameters.Count; i++)
+                    {
+                        var parameter = function.Parameters[i];
+                        if (i > 0)
+                        {
+                            sb.Append(", ");
+                        }
+                        sb.Append($"{parameter.Name}: {parameter.Type.ToPath()}");
+                    }
+                    sb.Append(")");
                 }
 
                 sb.AppendLine();
             }
-            else if (instruction.Op == Opcode.CallName)
+            else if (instruction.Op == Opcode.VirtualFunc)
             {
-                var (jumpOffset, unknown, name) = ((short, ushort, string))instruction.Argument;
+                var (jumpOffset, unknown, name) = (VirtualFunc)instruction.Argument;
 
                 sb.Append($" ({jumpOffset:+#;-#}");
                 if (instruction.LoadInfo.HasValue == true)
@@ -348,7 +388,7 @@ namespace ScriptCacheDumpTest
             var sb = new StringBuilder();
             foreach (var tuple in scriptCacheFile.Definitions
                 .OfType<EnumerationDefinition>()
-                .Select(e => (enumeration: e, path: GetPath(e)))
+                .Select(e => (enumeration: e, path: e.ToPath()))
                 .OrderBy(t => t.path))
             {
                 var (enumeration, path) = tuple;
@@ -358,31 +398,28 @@ namespace ScriptCacheDumpTest
                     sb.AppendLine();
                 }
 
-                sb.AppendLine($"{path} : {enumeration.Size}");
+                sb.AppendLine($"enum {path} // {enumeration.Size}");
+                sb.AppendLine("{");
                 foreach (var enumeral in enumeration.Enumerals)
                 {
-                    sb.AppendLine($"  {enumeral.Name} = {enumeral.Value}");
+                    sb.Append("  ");
+                    if (string.IsNullOrEmpty(enumeral.Name) == true)
+                    {
+                        sb.Append("_ /* blank name */");
+                    }
+                    else
+                    {
+                        sb.Append(enumeral.Name);
+                    }
+
+                    sb.AppendLine($" = {enumeral.Value},");
                 }
+                sb.AppendLine("}");
 
                 previousEnumeration = enumeration;
             }
 
             File.WriteAllText("test_enumeration_dump.txt", sb.ToString(), Encoding.UTF8);
-        }
-
-        private static string GetPath(Definition type)
-        {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-            var types = new List<Definition>();
-            while (type != null)
-            {
-                types.Insert(0, type);
-                type = type.Parent;
-            }
-            return string.Join("::", types.Select(t => t.Name).ToArray());
         }
     }
 }

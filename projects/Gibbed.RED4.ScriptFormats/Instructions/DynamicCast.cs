@@ -20,48 +20,45 @@
  *    distribution.
  */
 
-using System.IO;
-using System.Text;
-using Gibbed.IO;
+using Gibbed.RED4.ScriptFormats.Definitions;
 
-namespace Gibbed.RED4.ScriptFormats
+namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    public abstract class Definition
+    public struct DynamicCast
     {
-        public abstract DefinitionType DefinitionType { get; }
-        public Definition Parent { get; set; }
-        public string Name { get; set; }
-        public long LoadPosition { get; internal set; }
+        public ClassDefinition Type;
+        public byte Unknown;
 
-        public Definition()
+        public DynamicCast(ClassDefinition type, byte unknown)
         {
-            this.Name = "";
+            this.Type = type;
+            this.Unknown = unknown;
         }
 
-        internal abstract void Serialize(IDefinitionWriter writer);
-        internal abstract void Deserialize(IDefinitionReader reader);
-
-        public virtual string ToName()
+        internal static (object, uint) Read(IDefinitionReader reader)
         {
-            return string.IsNullOrEmpty(this.Name) == true ? "(null)" : this.Name;
+            var type = reader.ReadReference<ClassDefinition>();
+            var unknown = reader.ReadValueU8();
+            return (new DynamicCast(type, unknown), 9);
         }
 
-        public virtual string ToPath()
+        internal static uint Write(object argument, IDefinitionWriter writer)
         {
-            var sb = new StringBuilder();
-            sb.Append(this.ToName());
-            var parent = this.Parent;
-            while (parent != null)
-            {
-                sb.Insert(0, $"{parent.ToName()}::");
-                parent = parent.Parent;
-            }
-            return sb.ToString();
+            var (type, unknown) = (DynamicCast)argument;
+            writer.WriteReference(type);
+            writer.WriteValueU8(unknown);
+            return 9;
+        }
+
+        public void Deconstruct(out ClassDefinition type, out byte unknown)
+        {
+            type = this.Type;
+            unknown = this.Unknown;
         }
 
         public override string ToString()
         {
-            return $"{this.DefinitionType} {this.ToPath()}";
+            return $"({this.Type}, {this.Unknown})";
         }
     }
 }

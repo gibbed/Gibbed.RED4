@@ -20,34 +20,16 @@
  *    distribution.
  */
 
-using System;
-
-namespace Gibbed.RED4.ScriptFormats.Definitions
+namespace Gibbed.RED4.ScriptFormats
 {
-    public class EnumeralDefinition : Definition
+    public enum NativeType : byte
     {
-        public override DefinitionType DefinitionType => DefinitionType.Enumeral;
-
-        public long Value { get; set; }
-
-        internal override void Serialize(IDefinitionWriter writer)
-        {
-            if (writer == null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            writer.WriteValueS64(this.Value);
-        }
-
-        internal override void Deserialize(IDefinitionReader reader)
-        {
-            if (reader == null)
-            {
-                throw new ArgumentNullException(nameof(reader));
-            }
-
-            this.Value = reader.ReadValueS64();
-        }
+        Simple = 0, // Such as Int32, Float, etc.
+        Complex = 1, // Such as enums, classes, etc.
+        Handle = 2,
+        WeakHandle = 3,
+        Array = 4,
+        StaticArray = 5,
+        Unknown6 = 6,
     }
 }

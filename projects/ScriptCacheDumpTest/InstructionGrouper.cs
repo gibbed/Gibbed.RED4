@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using Gibbed.RED4.ScriptFormats;
 using Gibbed.RED4.ScriptFormats.Definitions;
+using Gibbed.RED4.ScriptFormats.Instructions;
 
 namespace ScriptCacheDumpTest
 {
@@ -77,19 +78,19 @@ namespace ScriptCacheDumpTest
             {
                 enumerable = GroupBasicInstruction(info.ChainCount);
             }
-            else if (instruction.Op == Opcode.Construct)
+            else if (instruction.Op == Opcode.Constructor)
             {
-                var (parameterCount, _) = ((byte, ClassDefinition))instruction.Argument;
+                var (parameterCount, _) = (Constructor)instruction.Argument;
                 enumerable = GroupBasicInstruction(parameterCount);
             }
-            else if (instruction.Op == Opcode.Call)
+            else if (instruction.Op == Opcode.FinalFunc)
             {
-                var (_, _, function) = ((short, ushort, FunctionDefinition))instruction.Argument;
+                var (_, _, function) = (FinalFunc)instruction.Argument;
                 var parameterCount = function.Parameters.Count;
                 parameterCount++; // EndCall
                 enumerable = GroupBasicInstruction(parameterCount);
             }
-            else if (instruction.Op == Opcode.CallName)
+            else if (instruction.Op == Opcode.VirtualFunc)
             {
                 // TODO(gibbed): dodgy af
                 /*var (_, _, name) = ((short, ushort, string))instruction.Argument;
@@ -111,7 +112,7 @@ namespace ScriptCacheDumpTest
             {
                 enumerable = GroupSwitchInstruction();
             }
-            else if (instruction.Op == Opcode.SwitchCase)
+            else if (instruction.Op == Opcode.SwitchLabel)
             {
                 enumerable = GroupSwitchCaseInstruction();
             }
@@ -154,7 +155,7 @@ namespace ScriptCacheDumpTest
                 {
                     yield return group;
                 }
-                if (instruction.Op == Opcode.EndCall)
+                if (instruction.Op == Opcode.ParamEnd)
                 {
                     yield break;
                 }
@@ -173,7 +174,7 @@ namespace ScriptCacheDumpTest
             while (_Index < count)
             {
                 var instruction = body[_Index];
-                if (instruction.Op != Opcode.SwitchCase &&
+                if (instruction.Op != Opcode.SwitchLabel &&
                     instruction.Op != Opcode.SwitchDefault)
                 {
                     yield break;
@@ -203,7 +204,7 @@ namespace ScriptCacheDumpTest
             while (_Index < count)
             {
                 var instruction = body[_Index];
-                if (instruction.Op == Opcode.SwitchCase ||
+                if (instruction.Op == Opcode.SwitchLabel ||
                     instruction.Op == Opcode.SwitchDefault)
                 {
                     yield break;
@@ -212,7 +213,7 @@ namespace ScriptCacheDumpTest
                 {
                     yield return group;
                 }
-                if (instruction.Op == Opcode.ReturnWithValue)
+                if (instruction.Op == Opcode.Return)
                 {
                     yield break;
                 }
@@ -235,7 +236,7 @@ namespace ScriptCacheDumpTest
                 {
                     yield return group;
                 }
-                if (instruction.Op == Opcode.ReturnWithValue)
+                if (instruction.Op == Opcode.Return)
                 {
                     yield break;
                 }

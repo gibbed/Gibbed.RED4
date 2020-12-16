@@ -28,9 +28,25 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
     {
         public override DefinitionType DefinitionType => DefinitionType.Native;
 
-        public byte Unknown24 { get; set; }
-        public Definition Type { get; set; }
-        public uint Unknown20 { get; set; }
+        public NativeType NativeType { get; set; }
+        public Definition BaseType { get; set; }
+        public uint ArraySize { get; set; }
+
+        private static bool HasBaseType(NativeType type)
+        {
+            switch (type)
+            {
+                case NativeType.Handle:
+                case NativeType.WeakHandle:
+                case NativeType.Array:
+                case NativeType.StaticArray:
+                case NativeType.Unknown6:
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
 
         internal override void Serialize(IDefinitionWriter writer)
         {
@@ -39,16 +55,16 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            writer.WriteValueU8(this.Unknown24);
+            writer.WriteValueU8((byte)this.NativeType);
 
-            if (this.Unknown24 >= 2 && this.Unknown24 <= 6)
+            if (HasBaseType(this.NativeType) == true)
             {
-                writer.WriteReference(this.Type);
+                writer.WriteReference(this.BaseType);
             }
 
-            if (this.Unknown24 == 5)
+            if (this.NativeType == NativeType.StaticArray)
             {
-                writer.WriteValueU32(this.Unknown20);
+                writer.WriteValueU32(this.ArraySize);
             }
         }
 
@@ -59,11 +75,10 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 throw new ArgumentNullException(nameof(reader));
             }
 
-            var unknown24 = reader.ReadValueU8();
-
-            this.Unknown24 = unknown24;
-            this.Type = unknown24 >= 2 && unknown24 <= 6 ? reader.ReadReference() : null;
-            this.Unknown20 = unknown24 == 5 ? reader.ReadValueU32() : 0;
+            var nativeType = (NativeType)reader.ReadValueU8();
+            this.NativeType = nativeType;
+            this.BaseType = HasBaseType(NativeType) == true ? reader.ReadReference() : null;
+            this.ArraySize = nativeType == NativeType.StaticArray ? reader.ReadValueU32() : 0;
         }
     }
 }

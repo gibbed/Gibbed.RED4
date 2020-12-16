@@ -22,32 +22,38 @@
 
 using System;
 
-namespace Gibbed.RED4.ScriptFormats.Definitions
+namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    public class EnumeralDefinition : Definition
+    internal static class _DefinitionRef
     {
-        public override DefinitionType DefinitionType => DefinitionType.Enumeral;
-
-        public long Value { get; set; }
-
-        internal override void Serialize(IDefinitionWriter writer)
+        public static (object, uint) Read(IDefinitionReader reader)
         {
-            if (writer == null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            writer.WriteValueS64(this.Value);
+            var definition = reader.ReadReference();
+            return (definition, 8);
         }
 
-        internal override void Deserialize(IDefinitionReader reader)
+        public static uint Write(object argument, IDefinitionWriter writer)
         {
-            if (reader == null)
-            {
-                throw new ArgumentNullException(nameof(reader));
-            }
+            var definition = (Definition)argument;
+            writer.WriteReference(definition);
+            return 8;
+        }
+    }
 
-            this.Value = reader.ReadValueS64();
+    internal static class _DefinitionRef<T>
+        where T: Definition
+    {
+        public static (object, uint) Read(IDefinitionReader reader)
+        {
+            var definition = reader.ReadReference<T>();
+            return (definition, 8);
+        }
+
+        public static uint Write(object argument, IDefinitionWriter writer)
+        {
+            var definition = (T)argument;
+            writer.WriteReference(definition);
+            return 8;
         }
     }
 }
