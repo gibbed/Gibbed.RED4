@@ -186,16 +186,16 @@ namespace ScriptCacheDumpTest
 
             var groups = InstructionGrouper.GroupCode(cacheFile, function).ToArray();
 
-            var groupStack = new LinkedList<(InstructionGrouper.Group, int)>();
-            foreach (var group in groups)
+            var groupStack = new LinkedList<(InstructionGrouper.Group group, string indent, bool isLast)>();
+            for (int i = 0; i < groups.Length; i++)
             {
-                groupStack.AddLast((group, 0));
+                groupStack.AddLast((groups[i], "", i == groups.Length - 1));
             }
 
             int opcodeIndex = 0;
             while (groupStack.Count > 0)
             {
-                var (group, depth) = groupStack.First.Value;
+                var (group, indent, isLast) = groupStack.First.Value;
                 groupStack.RemoveFirst();
 
                 var instruction = group.Instruction;
@@ -224,27 +224,25 @@ namespace ScriptCacheDumpTest
                     sb.Append($"  (@0x{absolutePosition:X6} {relativePosition,4}) @{loadInfo.Offset,-4} #{opcodeIndex++,-4}");
                 }
 
-                sb.Append(" | ");
+                sb.Append(indent);
+                sb.Append(isLast == true ? " └─" : " ├─");
 
-                DumpInstruction(instruction, sb, depth);
+                DumpInstruction(instruction, sb);
 
-                foreach (var child in group.Children.Reverse<InstructionGrouper.Group>())
+                var lastChildIndex = group.Children.Count - 1;
+                for (int i = lastChildIndex; i >= 0; i--)
                 {
-                    groupStack.AddFirst((child, depth + 1));
+                    var child = group.Children[i];
+                    groupStack.AddFirst((child, indent + (isLast == true ? "   " : " │ "), i == lastChildIndex));
                 }
             }
 
             sb.AppendLine("}");
         }
 
-        private static void DumpInstruction(Instruction instruction, StringBuilder sb, int depth)
+        private static void DumpInstruction(Instruction instruction, StringBuilder sb)
         {
             var opName = Enum.GetName(typeof(Opcode), instruction.Op) ?? (instruction.Op.ToString() + "?");
-
-            if (depth > 0)
-            {
-                sb.Append(new string(' ', depth * 2));
-            }
 
             sb.Append($"{opName}");
 
