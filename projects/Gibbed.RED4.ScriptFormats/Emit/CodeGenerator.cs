@@ -37,6 +37,13 @@ namespace Gibbed.RED4.ScriptFormats.Emit
             this._Instructions = new List<(Opcode opcode, object argument)>();
             this._Labels = new Dictionary<Label, int>();
         }
+
+        public void Reset()
+        {
+            this._Instructions.Clear();
+            this._Labels.Clear();
+        }
+
         public Instruction[] GetCode()
         {
             foreach (var kv in this._Labels)
