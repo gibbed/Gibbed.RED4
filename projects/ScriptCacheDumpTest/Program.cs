@@ -328,7 +328,7 @@ namespace ScriptCacheDumpTest
             else if (instruction.Opcode == Opcode.VirtualFunc)
             {
                 var (nextIndex, sourceLine, name) = (VirtualFunc)instruction.Argument;
-                sb.Append($" (=>{nextIndex}, {sourceLine}, {name})");
+                sb.AppendLine($" (=>{nextIndex}, {sourceLine}, {name})");
             }
             else
             {
