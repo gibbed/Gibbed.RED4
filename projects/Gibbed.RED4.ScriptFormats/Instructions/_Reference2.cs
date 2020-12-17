@@ -22,19 +22,22 @@
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    [Instruction(Opcode.DoubleConst)]
-    internal static class DoubleConst
+    [Instruction(Opcode.TestEqual)]
+    [Instruction(Opcode.TestNotEqual)]
+    internal static class _Reference2
     {
-        public const int ChainCount = 0;
+        public const int ChainCount = 2;
 
         public static (object, uint) Read(IDefinitionReader reader)
         {
-            return (reader.ReadValueF64(), 8);
+            var definition = reader.ReadReference();
+            return (definition, 8);
         }
 
         public static uint Write(object argument, IDefinitionWriter writer)
         {
-            writer.WriteValueF64((double)argument);
+            var definition = (Definition)argument;
+            writer.WriteReference(definition);
             return 8;
         }
     }

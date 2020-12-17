@@ -24,8 +24,11 @@ using Gibbed.RED4.ScriptFormats.Definitions;
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
+    [Instruction(Opcode.FinalFunc)]
     public struct FinalFunc
     {
+        public const int ChainCount = -1;
+
         public short JumpOffset;
         public ushort SourceLine;
         public FunctionDefinition Function;

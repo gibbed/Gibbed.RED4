@@ -22,8 +22,11 @@
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
+    [Instruction(Opcode.Uint64Const)]
     internal static class Uint64Const
     {
+        public const int ChainCount = 0;
+
         public static (object, uint) Read(IDefinitionReader reader)
         {
             return (reader.ReadValueU64(), 8);

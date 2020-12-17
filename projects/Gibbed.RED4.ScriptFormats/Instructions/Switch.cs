@@ -24,8 +24,11 @@ using Gibbed.RED4.ScriptFormats.Definitions;
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
+    [Instruction(Opcode.Switch)]
     public struct Switch
     {
+        public const int ChainCount = -1;
+
         public NativeDefinition Type;
         public short FirstCaseOffset;
 

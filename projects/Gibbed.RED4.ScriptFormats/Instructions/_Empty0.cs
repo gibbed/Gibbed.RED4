@@ -22,20 +22,35 @@
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    [Instruction(Opcode.DoubleConst)]
-    internal static class DoubleConst
+    [Instruction(Opcode.Nop)]
+    [Instruction(Opcode.Null)]
+    [Instruction(Opcode.Int32One)]
+    [Instruction(Opcode.Int32Zero)]
+    [Instruction(Opcode.BoolTrue)]
+    [Instruction(Opcode.BoolFalse)]
+    [Instruction(Opcode.Target)]
+    [Instruction(Opcode.Unknown27)]
+    [Instruction(Opcode.ParamEnd)]
+    [Instruction(Opcode.Unknown45)]
+    [Instruction(Opcode.This)]
+    [Instruction(Opcode.Unknown95)]
+    [Instruction(Opcode.Unknown98)]
+    internal static class _Empty0
     {
         public const int ChainCount = 0;
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public static (object, uint) Read(IDefinitionReader reader)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
-            return (reader.ReadValueF64(), 8);
+            return (null, 0);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public static uint Write(object argument, IDefinitionWriter writer)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
-            writer.WriteValueF64((double)argument);
-            return 8;
+            return 0;
         }
     }
 }

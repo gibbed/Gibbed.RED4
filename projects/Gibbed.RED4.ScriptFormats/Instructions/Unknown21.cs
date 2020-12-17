@@ -22,8 +22,11 @@
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
+    [Instruction(Opcode.Unknown21)]
     internal static class Unknown21
     {
+        public const int ChainCount = 1;
+
         public static (object, uint) Read(IDefinitionReader reader)
         {
             var unknown0 = reader.ReadValueU16();

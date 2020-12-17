@@ -22,8 +22,11 @@
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
+    [Instruction(Opcode.ResourceConst)]
     internal static class ResourceConst
     {
+        public const int ChainCount = 0;
+
         public static (object, uint) Read(IDefinitionReader reader)
         {
             return (reader.ReadResource(), 8);

@@ -22,8 +22,11 @@
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
+    [Instruction(Opcode.Uint16Const)]
     internal static class Uint16Const
     {
+        public const int ChainCount = 0;
+
         public static (object, uint) Read(IDefinitionReader reader)
         {
             return (reader.ReadValueU16(), 2);

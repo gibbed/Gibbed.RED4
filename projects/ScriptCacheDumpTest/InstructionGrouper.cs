@@ -73,10 +73,10 @@ namespace ScriptCacheDumpTest
 
             IEnumerable<Group> enumerable;
 
-            var info = OpcodeInfo.Get(instruction.Op);
-            if (info.ChainCount >= 0)
+            var chainCount = InstructionInfo.GetChainCount(instruction.Op);
+            if (chainCount >= 0)
             {
-                enumerable = GroupBasicInstruction(info.ChainCount);
+                enumerable = GroupBasicInstruction(chainCount);
             }
             else if (instruction.Op == Opcode.Constructor)
             {

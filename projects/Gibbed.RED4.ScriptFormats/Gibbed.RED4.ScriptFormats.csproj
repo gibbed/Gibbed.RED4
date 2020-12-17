@@ -10,4 +10,10 @@
     <ProjectReference Include="..\Gibbed.IO\Gibbed.IO.csproj" />
     <ProjectReference Include="..\Gibbed.RED4.FileFormats\Gibbed.RED4.FileFormats.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RED4Generators\RED4Generators.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>Analyzer</OutputItemType>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

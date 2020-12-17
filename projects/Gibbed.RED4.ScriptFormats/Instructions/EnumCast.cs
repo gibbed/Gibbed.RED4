@@ -24,8 +24,12 @@ using Gibbed.RED4.ScriptFormats.Definitions;
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
+    [Instruction(Opcode.EnumToInt)]
+    [Instruction(Opcode.IntToEnum)]
     public struct EnumCast
     {
+        public const int ChainCount = 1;
+
         public NativeDefinition Type;
         public byte Size;
 

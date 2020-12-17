@@ -22,8 +22,11 @@
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
+    [Instruction(Opcode.VirtualFunc)]
     public struct VirtualFunc
     {
+        public const int ChainCount = -1;
+
         public short JumpOffset;
         public ushort SourceLine;
         public string Function;

@@ -24,8 +24,11 @@ using Gibbed.RED4.ScriptFormats.Definitions;
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
+    [Instruction(Opcode.DynamicCast)]
     public struct DynamicCast
     {
+        public const int ChainCount = 1;
+
         public ClassDefinition Type;
         public byte Unknown;
 

@@ -20,22 +20,21 @@
  *    distribution.
  */
 
-namespace Gibbed.RED4.ScriptFormats.Instructions
+using System;
+using Gibbed.RED4.ScriptFormats.Definitions;
+using Gibbed.RED4.ScriptFormats.Instructions;
+
+namespace Gibbed.RED4.ScriptFormats
 {
-    [Instruction(Opcode.DoubleConst)]
-    internal static class DoubleConst
+    public static partial class InstructionInfo
     {
-        public const int ChainCount = 0;
+        internal delegate (object, uint) ReadDelegate(IDefinitionReader reader);
+        internal delegate uint WriteDelegate(object argument, IDefinitionWriter writer);
 
-        public static (object, uint) Read(IDefinitionReader reader)
+        public static int GetChainCount(Opcode opcode)
         {
-            return (reader.ReadValueF64(), 8);
-        }
-
-        public static uint Write(object argument, IDefinitionWriter writer)
-        {
-            writer.WriteValueF64((double)argument);
-            return 8;
+            var (chainCount, _, _) = GetInternal(opcode);
+            return chainCount;
         }
     }
 }

@@ -22,12 +22,15 @@
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    public struct _Conditional
+    [Instruction(Opcode.Conditional)]
+    public struct Conditional
     {
+        public const int ChainCount = 2;
+
         public short FalseOffset;
         public short TrueOffset;
 
-        public _Conditional(short falseOffset, short trueOffset)
+        public Conditional(short falseOffset, short trueOffset)
         {
             this.FalseOffset = falseOffset;
             this.TrueOffset = trueOffset;

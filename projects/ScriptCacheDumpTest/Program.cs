@@ -242,7 +242,7 @@ namespace ScriptCacheDumpTest
 
         private static void DumpInstruction(Instruction instruction, StringBuilder sb)
         {
-            var opName = Enum.GetName(typeof(Opcode), instruction.Op) ?? (instruction.Op.ToString() + "?");
+            var opName = GetOpcodeName(instruction);
 
             sb.Append($"{opName}");
 
@@ -376,6 +376,16 @@ namespace ScriptCacheDumpTest
             else
             {
                 sb.AppendLine($" {instruction.Argument}");
+            }
+
+            static string GetOpcodeName(Instruction instruction)
+            {
+                var name = Enum.GetName(typeof(Opcode), instruction.Op);
+                if (name == null || name.StartsWith("Unknown") == true)
+                {
+                    return ((byte)instruction.Op).ToString() + "?";
+                }
+                return name;
             }
         }
 

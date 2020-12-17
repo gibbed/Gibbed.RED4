@@ -24,8 +24,11 @@ using Gibbed.RED4.ScriptFormats.Definitions;
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
+    [Instruction(Opcode.Constructor)]
     public struct Constructor
     {
+        public const int ChainCount = -1;
+
         public byte ParameterCount;
         public ClassDefinition Type;
 

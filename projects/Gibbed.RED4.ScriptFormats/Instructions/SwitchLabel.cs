@@ -22,8 +22,11 @@
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
+    [Instruction(Opcode.SwitchLabel)]
     public struct SwitchLabel
     {
+        public const int ChainCount = -1;
+
         public short FalseOffset;
         public short TrueOffset;
 

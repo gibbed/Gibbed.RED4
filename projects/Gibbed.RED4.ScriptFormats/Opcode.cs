@@ -45,13 +45,13 @@ namespace Gibbed.RED4.ScriptFormats
         ResourceConst = 18,
         BoolTrue = 19,
         BoolFalse = 20,
-        // 21
+        Unknown21 = 21,
         Assign = 22,
         Target = 23,
         LocalVar = 24,
         ParamVar = 25,
         ObjectVar = 26,
-        // 27
+        Unknown27 = 27,
         Switch = 28,
         SwitchLabel = 29,
         SwitchDefault = 30,
@@ -68,60 +68,60 @@ namespace Gibbed.RED4.ScriptFormats
         Context = 41,
         TestEqual = 42,
         TestNotEqual = 43,
-        // 44
-        // 45
+        Unknown44 = 44,
+        Unknown45 = 45,
         This = 46,
-        // 47
-        // 48
+        Unknown47 = 47,
+        Unknown48 = 48,
         ArraySize = 49,
-        // 50
-        // 51
-        // 52
-        // 53
-        // 54
+        Unknown50 = 50,
+        Unknown51 = 51,
+        Unknown52 = 52,
+        Unknown53 = 53,
+        Unknown54 = 54,
         ArrayContains = 55,
-        // 56
-        // 57
-        // 58
-        // 59
-        // 60
+        Unknown56 = 56,
+        Unknown57 = 57,
+        Unknown58 = 58,
+        Unknown59 = 59,
+        Unknown60 = 60,
         ArrayInsert = 61,
-        // 62
-        // 63
-        // 64
-        // 65
-        // 66
-        // 67
+        Unknown62 = 62,
+        Unknown63 = 63,
+        Unknown64 = 64,
+        Unknown65 = 65,
+        Unknown66 = 66,
+        Unknown67 = 67,
         ArrayElement = 68,
-        // 69
-        // 70
-        // 71
-        // 72
-        // 73
-        // 74
-        // 75
-        // 76
-        // 77
-        // 78
-        // 79
-        // 80
-        // 81
+        Unknown69 = 69,
+        Unknown70 = 70,
+        Unknown71 = 71,
+        Unknown72 = 72,
+        Unknown73 = 73,
+        Unknown74 = 74,
+        Unknown75 = 75,
+        Unknown76 = 76,
+        Unknown77 = 77,
+        Unknown78 = 78,
+        Unknown79 = 79,
+        Unknown80 = 80,
+        Unknown81 = 81,
         EnumToInt = 82,
         IntToEnum = 83,
         DynamicCast = 84,
         StructToString = 85,
-        // 86
-        // 87
-        // 88
-        // 89
-        // 90
-        // 91
-        // 92
-        // 93
-        // 94
-        // 95
-        // 96
-        // 97
-        // 98
+        Unknown86 = 86,
+        Unknown87 = 87,
+        Unknown88 = 88,
+        Unknown89 = 89,
+        Unknown90 = 90,
+        Unknown91 = 91,
+        Unknown92 = 92,
+        Unknown93 = 93,
+        Unknown94 = 94,
+        Unknown95 = 95,
+        Unknown96 = 96,
+        Unknown97 = 97,
+        Unknown98 = 98,
     }
 }

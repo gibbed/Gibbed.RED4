@@ -20,38 +20,48 @@
  *    distribution.
  */
 
-using System;
+using Gibbed.RED4.ScriptFormats.Definitions;
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    internal static class _DefinitionRef
+    [Instruction(Opcode.Unknown50)]
+    [Instruction(Opcode.Unknown51)]
+    [Instruction(Opcode.Unknown52)]
+    [Instruction(Opcode.Unknown53)]
+    [Instruction(Opcode.Unknown54)]
+    [Instruction(Opcode.ArrayContains)]
+    [Instruction(Opcode.Unknown56)]
+    [Instruction(Opcode.Unknown57)]
+    [Instruction(Opcode.Unknown58)]
+    [Instruction(Opcode.Unknown59)]
+    [Instruction(Opcode.Unknown62)]
+    [Instruction(Opcode.Unknown63)]
+    [Instruction(Opcode.Unknown64)]
+    [Instruction(Opcode.Unknown65)]
+    [Instruction(Opcode.Unknown66)]
+    [Instruction(Opcode.ArrayElement)]
+    [Instruction(Opcode.Unknown70)]
+    [Instruction(Opcode.Unknown71)]
+    [Instruction(Opcode.Unknown72)]
+    [Instruction(Opcode.Unknown73)]
+    [Instruction(Opcode.Unknown74)]
+    [Instruction(Opcode.Unknown75)]
+    [Instruction(Opcode.Unknown76)]
+    [Instruction(Opcode.Unknown77)]
+    [Instruction(Opcode.Unknown79)]
+    internal static class _NativeReference2
     {
+        public const int ChainCount = 2;
+
         public static (object, uint) Read(IDefinitionReader reader)
         {
-            var definition = reader.ReadReference();
+            var definition = reader.ReadReference<NativeDefinition>();
             return (definition, 8);
         }
 
         public static uint Write(object argument, IDefinitionWriter writer)
         {
-            var definition = (Definition)argument;
-            writer.WriteReference(definition);
-            return 8;
-        }
-    }
-
-    internal static class _DefinitionRef<T>
-        where T: Definition
-    {
-        public static (object, uint) Read(IDefinitionReader reader)
-        {
-            var definition = reader.ReadReference<T>();
-            return (definition, 8);
-        }
-
-        public static uint Write(object argument, IDefinitionWriter writer)
-        {
-            var definition = (T)argument;
+            var definition = (NativeDefinition)argument;
             writer.WriteReference(definition);
             return 8;
         }

@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptCacheDumpTest", "proj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gibbed.RED4.ScriptFormats", "projects\Gibbed.RED4.ScriptFormats\Gibbed.RED4.ScriptFormats.csproj", "{8C2F17BD-F5EB-402C-8C60-BE109ED2C013}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RED4Generators", "projects\RED4Generators\RED4Generators.csproj", "{24AEAA98-6B48-4489-A078-5016DE8C279A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{8C2F17BD-F5EB-402C-8C60-BE109ED2C013}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C2F17BD-F5EB-402C-8C60-BE109ED2C013}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C2F17BD-F5EB-402C-8C60-BE109ED2C013}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24AEAA98-6B48-4489-A078-5016DE8C279A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24AEAA98-6B48-4489-A078-5016DE8C279A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24AEAA98-6B48-4489-A078-5016DE8C279A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24AEAA98-6B48-4489-A078-5016DE8C279A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

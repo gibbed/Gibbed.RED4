@@ -24,8 +24,11 @@ using Gibbed.RED4.ScriptFormats.Definitions;
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
+    [Instruction(Opcode.EnumConst)]
     public struct EnumConst
     {
+        public const int ChainCount = 0;
+
         public EnumerationDefinition Enumeration;
         public EnumeralDefinition Enumeral;
 

@@ -22,21 +22,23 @@
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    internal static class _Jump
+    [Instruction(Opcode.SwitchDefault)]
+    internal static class SwitchDefault
     {
+        public const int ChainCount = -1;
+
+#pragma warning disable IDE0060 // Remove unused parameter
         public static (object, uint) Read(IDefinitionReader reader)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
-            var jumpOffset = reader.ReadValueS16();
-            jumpOffset += 1 + 2; // make relative to the instruction
-            return (jumpOffset, 2);
+            return (null, 0);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public static uint Write(object argument, IDefinitionWriter writer)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
-            var jumpOffset = (short)argument;
-            jumpOffset -= 1 + 2; // make relative to the jump offset;
-            writer.WriteValueS16(jumpOffset);
-            return 2;
+            return 0;
         }
     }
 }

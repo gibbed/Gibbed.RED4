@@ -20,22 +20,18 @@
  *    distribution.
  */
 
-namespace Gibbed.RED4.ScriptFormats.Instructions
+using System;
+
+namespace Gibbed.RED4.ScriptFormats
 {
-    [Instruction(Opcode.DoubleConst)]
-    internal static class DoubleConst
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true, Inherited = false)]
+    internal class InstructionAttribute : Attribute
     {
-        public const int ChainCount = 0;
-
-        public static (object, uint) Read(IDefinitionReader reader)
+        public InstructionAttribute(Opcode opcode)
         {
-            return (reader.ReadValueF64(), 8);
+            this.Opcode = opcode;
         }
 
-        public static uint Write(object argument, IDefinitionWriter writer)
-        {
-            writer.WriteValueF64((double)argument);
-            return 8;
-        }
+        public Opcode Opcode { get; }
     }
 }

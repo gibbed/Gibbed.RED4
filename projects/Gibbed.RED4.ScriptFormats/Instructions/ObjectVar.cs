@@ -20,21 +20,25 @@
  *    distribution.
  */
 
+using Gibbed.RED4.ScriptFormats.Definitions;
+
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    [Instruction(Opcode.DoubleConst)]
-    internal static class DoubleConst
+    [Instruction(Opcode.ObjectVar)]
+    internal static class ObjectVar
     {
         public const int ChainCount = 0;
 
         public static (object, uint) Read(IDefinitionReader reader)
         {
-            return (reader.ReadValueF64(), 8);
+            var definition = reader.ReadReference<PropertyDefinition>();
+            return (definition, 8);
         }
 
         public static uint Write(object argument, IDefinitionWriter writer)
         {
-            writer.WriteValueF64((double)argument);
+            var definition = (PropertyDefinition)argument;
+            writer.WriteReference(definition);
             return 8;
         }
     }

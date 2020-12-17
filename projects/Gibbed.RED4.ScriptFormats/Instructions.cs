@@ -21,8 +21,6 @@
  */
 
 using System.Collections.Generic;
-using System.IO;
-using Gibbed.IO;
 
 namespace Gibbed.RED4.ScriptFormats.Definitions
 {
@@ -36,7 +34,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 InstructionLoadInfo loadInfo;
                 loadInfo.BasePosition = reader.Position;
                 loadInfo.Offset = i;
-                var (instruction, size) = InstructionHandlers.Read(reader);
+                var (instruction, size) = Read(reader);
                 instruction.LoadInfo = loadInfo;
                 result.Add(instruction);
                 i += size;
@@ -49,8 +47,51 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             uint size = 0;
             foreach (var instruction in code)
             {
-                size += InstructionHandlers.Write(instruction, writer);
+                size += Write(instruction, writer);
             }
+            return size;
+        }
+
+        internal static (Instruction, uint) Read(IDefinitionReader reader)
+        {
+            uint size = 0;
+
+            var op = (Opcode)reader.ReadValueU8();
+            size++;
+
+            var (_, handler, _) = InstructionInfo.GetInternal(op);
+
+            Instruction instance;
+            instance.Op = op;
+            if (handler == null)
+            {
+                instance.Argument = null;
+            }
+            else
+            {
+                var (argument, argumentSize) = handler(reader);
+                instance.Argument = argument;
+                size += argumentSize;
+            }
+            instance.LoadInfo = default;
+            return (instance, size);
+        }
+
+        internal static uint Write(Instruction instruction, IDefinitionWriter writer)
+        {
+            var op = instruction.Op;
+
+            uint size = 0;
+
+            writer.WriteValueU8((byte)op);
+            size++;
+
+            var (_, _, handler) = InstructionInfo.GetInternal(op);
+            if (handler != null)
+            {
+                size += handler(instruction.Argument, writer);
+            }
+
             return size;
         }
     }
