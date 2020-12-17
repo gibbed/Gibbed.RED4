@@ -49,6 +49,21 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             ClassFlags.HasFunctions | ClassFlags.Unknown5 |
             ClassFlags.IsImportOnly | ClassFlags.Unknown8;
 
+        public bool IsA(ClassDefinition type)
+        {
+            var current = this;
+            do
+            {
+                if (current == type)
+                {
+                    return true;
+                }
+                current = current.BaseClass;
+            }
+            while (current != null);
+            return false;
+        }
+
         internal override void Serialize(IDefinitionWriter writer)
         {
             if (writer == null)
