@@ -24,8 +24,22 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 {
     public struct Instruction
     {
-        public InstructionLoadInfo? LoadInfo;
-        public Opcode Op;
+        public Opcode Opcode;
         public object Argument;
+        public long LoadPosition;
+
+        public Instruction(Opcode opcode, object argument)
+        {
+            this.Opcode = opcode;
+            this.Argument = argument;
+            this.LoadPosition = -1;
+        }
+
+        public Instruction(Opcode opcode, object argument, long loadPosition)
+        {
+            this.Opcode = opcode;
+            this.Argument = argument;
+            this.LoadPosition = loadPosition;
+        }
     }
 }

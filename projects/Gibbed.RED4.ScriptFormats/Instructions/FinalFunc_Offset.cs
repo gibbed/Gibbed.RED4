@@ -24,29 +24,51 @@ using Gibbed.RED4.ScriptFormats.Definitions;
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    public struct FinalFunc
+    [Instruction(Opcode.FinalFunc)]
+    internal struct FinalFunc_Offset
     {
-        public int NextIndex;
+        public const int ChainCount = -1;
+
+        public short NextOffset;
         public ushort SourceLine;
         public FunctionDefinition Function;
 
-        public FinalFunc(int nextIndex, ushort sourceLine, FunctionDefinition function)
+        public FinalFunc_Offset(short nextOffset, ushort sourceLine, FunctionDefinition function)
         {
-            this.NextIndex = nextIndex;
+            this.NextOffset = nextOffset;
             this.SourceLine = sourceLine;
             this.Function = function;
         }
 
-        public void Deconstruct(out int nextIndex, out ushort sourceLine, out FunctionDefinition function)
+        internal static (object, uint) Read(IDefinitionReader reader)
         {
-            nextIndex = this.NextIndex;
+            var nextOffset = reader.ReadValueS16();
+            var sourceLine = reader.ReadValueU16();
+            var function = reader.ReadReference<FunctionDefinition>();
+            nextOffset += 1 + 2; // make relative to the instruction
+            return (new FinalFunc_Offset(nextOffset, sourceLine, function), 12);
+        }
+
+        internal static uint Write(object argument, IDefinitionWriter writer)
+        {
+            var (jnextOffset, sourceLine, function) = (FinalFunc_Offset)argument;
+            jnextOffset -= 1 + 2; // make relative to the jump offset;
+            writer.WriteValueS16(jnextOffset);
+            writer.WriteValueU16(sourceLine);
+            writer.WriteReference(function);
+            return 12;
+        }
+
+        public void Deconstruct(out short nextOffset, out ushort sourceLine, out FunctionDefinition function)
+        {
+            nextOffset = this.NextOffset;
             sourceLine = this.SourceLine;
             function = this.Function;
         }
 
         public override string ToString()
         {
-            return $"({this.NextIndex}, {this.SourceLine}, {this.Function})";
+            return $"({this.NextOffset}, {this.SourceLine}, {this.Function})";
         }
     }
 }

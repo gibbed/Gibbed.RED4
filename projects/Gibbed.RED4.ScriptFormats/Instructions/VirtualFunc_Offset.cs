@@ -20,48 +20,54 @@
  *    distribution.
  */
 
-using Gibbed.RED4.ScriptFormats.Definitions;
-
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    [Instruction(Opcode.Constructor)]
-    public struct Constructor
+    [Instruction(Opcode.VirtualFunc)]
+    internal struct VirtualFunc_Offset
     {
         public const int ChainCount = -1;
 
-        public byte ParameterCount;
-        public ClassDefinition Type;
+        public short JumpOffset;
+        public ushort SourceLine;
+        public string Function;
 
-        public Constructor(byte parameterCount, ClassDefinition type)
+        public VirtualFunc_Offset(short jumpOffset, ushort sourceLine, string function)
         {
-            this.ParameterCount = parameterCount;
-            this.Type = type;
+            this.JumpOffset = jumpOffset;
+            this.SourceLine = sourceLine;
+            this.Function = function;
         }
 
         internal static (object, uint) Read(IDefinitionReader reader)
         {
-            var parameterCount = reader.ReadValueU8();
-            var type = reader.ReadReference<ClassDefinition>();
-            return (new Constructor(parameterCount, type), 9);
+            var jumpOffset = reader.ReadValueS16();
+            var sourceLine = reader.ReadValueU16();
+            var function = reader.ReadName();
+            jumpOffset += 1 + 2; // make relative to the instruction
+            return (new VirtualFunc_Offset(jumpOffset, sourceLine, function), 12);
         }
 
         internal static uint Write(object argument, IDefinitionWriter writer)
         {
-            var (parameterCount, type) = (Constructor)argument;
-            writer.WriteValueU8(parameterCount);
-            writer.WriteReference(type);
-            return 9;
+            var instance = (VirtualFunc_Offset)argument;
+            var jumpOffset = instance.JumpOffset;
+            jumpOffset -= 1 + 2; // make relative to the jump offset
+            writer.WriteValueS16(jumpOffset);
+            writer.WriteValueU16(instance.SourceLine);
+            writer.WriteName(instance.Function);
+            return 12;
         }
 
-        public void Deconstruct(out byte parameterCount, out ClassDefinition type)
+        public void Deconstruct(out short jumpOffset, out ushort sourceLine, out string function)
         {
-            parameterCount = this.ParameterCount;
-            type = this.Type;
+            jumpOffset = this.JumpOffset;
+            sourceLine = this.SourceLine;
+            function = this.Function;
         }
 
         public override string ToString()
         {
-            return $"({this.ParameterCount}, {this.Type})";
+            return $"({this.JumpOffset}, {this.SourceLine}, {this.Function})";
         }
     }
 }

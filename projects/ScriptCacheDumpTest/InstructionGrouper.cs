@@ -73,24 +73,24 @@ namespace ScriptCacheDumpTest
 
             IEnumerable<Group> enumerable;
 
-            var chainCount = InstructionInfo.GetChainCount(instruction.Op);
+            var chainCount = InstructionInfo.GetChainCount(instruction.Opcode);
             if (chainCount >= 0)
             {
                 enumerable = GroupBasicInstruction(chainCount);
             }
-            else if (instruction.Op == Opcode.Constructor)
+            else if (instruction.Opcode == Opcode.Constructor)
             {
                 var (parameterCount, _) = (Constructor)instruction.Argument;
                 enumerable = GroupBasicInstruction(parameterCount);
             }
-            else if (instruction.Op == Opcode.FinalFunc)
+            else if (instruction.Opcode == Opcode.FinalFunc)
             {
                 var (_, _, function) = (FinalFunc)instruction.Argument;
                 var parameterCount = function.Parameters.Count;
                 parameterCount++; // EndCall
                 enumerable = GroupBasicInstruction(parameterCount);
             }
-            else if (instruction.Op == Opcode.VirtualFunc)
+            else if (instruction.Opcode == Opcode.VirtualFunc)
             {
                 // TODO(gibbed): dodgy af
                 /*var (_, _, name) = ((short, ushort, string))instruction.Argument;
@@ -108,15 +108,15 @@ namespace ScriptCacheDumpTest
                 }*/
                 enumerable = GroupCallNameInstruction();
             }
-            else if (instruction.Op == Opcode.Switch)
+            else if (instruction.Opcode == Opcode.Switch)
             {
                 enumerable = GroupSwitchInstruction();
             }
-            else if (instruction.Op == Opcode.SwitchLabel)
+            else if (instruction.Opcode == Opcode.SwitchLabel)
             {
                 enumerable = GroupSwitchCaseInstruction();
             }
-            else if (instruction.Op == Opcode.SwitchDefault)
+            else if (instruction.Opcode == Opcode.SwitchDefault)
             {
                 enumerable = GroupSwitchDefaultInstruction();
             }
@@ -155,7 +155,7 @@ namespace ScriptCacheDumpTest
                 {
                     yield return group;
                 }
-                if (instruction.Op == Opcode.ParamEnd)
+                if (instruction.Opcode == Opcode.ParamEnd)
                 {
                     yield break;
                 }
@@ -174,8 +174,8 @@ namespace ScriptCacheDumpTest
             while (_Index < count)
             {
                 var instruction = code[_Index];
-                if (instruction.Op != Opcode.SwitchLabel &&
-                    instruction.Op != Opcode.SwitchDefault)
+                if (instruction.Opcode != Opcode.SwitchLabel &&
+                    instruction.Opcode != Opcode.SwitchDefault)
                 {
                     yield break;
                 }
@@ -185,7 +185,7 @@ namespace ScriptCacheDumpTest
                     yield return group;
                 }
 
-                if (instruction.Op == Opcode.SwitchDefault)
+                if (instruction.Opcode == Opcode.SwitchDefault)
                 {
                     yield break;
                 }
@@ -204,8 +204,8 @@ namespace ScriptCacheDumpTest
             while (_Index < count)
             {
                 var instruction = code[_Index];
-                if (instruction.Op == Opcode.SwitchLabel ||
-                    instruction.Op == Opcode.SwitchDefault)
+                if (instruction.Opcode == Opcode.SwitchLabel ||
+                    instruction.Opcode == Opcode.SwitchDefault)
                 {
                     yield break;
                 }
@@ -213,7 +213,7 @@ namespace ScriptCacheDumpTest
                 {
                     yield return group;
                 }
-                if (instruction.Op == Opcode.Return)
+                if (instruction.Opcode == Opcode.Return)
                 {
                     yield break;
                 }
@@ -227,7 +227,7 @@ namespace ScriptCacheDumpTest
             while (_Index < count)
             {
                 var instruction = code[_Index];
-                if (instruction.Op == Opcode.SwitchDefault)
+                if (instruction.Opcode == Opcode.SwitchDefault)
                 {
                     yield break;
                 }
@@ -236,7 +236,7 @@ namespace ScriptCacheDumpTest
                 {
                     yield return group;
                 }
-                if (instruction.Op == Opcode.Return)
+                if (instruction.Opcode == Opcode.Return)
                 {
                     yield break;
                 }

@@ -20,11 +20,18 @@
  *    distribution.
  */
 
-namespace Gibbed.RED4.ScriptFormats
+using System;
+
+namespace Gibbed.RED4.ScriptFormats.Emit
 {
-    public struct InstructionLoadInfo
+    public class Label
     {
-        public long BasePosition;
-        public uint Offset;
+        public CodeGenerator CodeGenerator { get; }
+        internal int TargetIndex { get; set; }
+
+        internal Label(CodeGenerator codeGenerator)
+        {
+            this.CodeGenerator = codeGenerator ?? throw new ArgumentNullException(nameof(codeGenerator));
+        }
     }
 }

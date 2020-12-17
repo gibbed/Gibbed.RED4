@@ -31,14 +31,14 @@ namespace Gibbed.RED4.ScriptFormats.Instructions
 
         public static (object, uint) Read(IDefinitionReader reader)
         {
-            var definition = reader.ReadReference<PropertyDefinition>();
-            return (definition, 8);
+            var property = reader.ReadReference<PropertyDefinition>();
+            return (property, 8);
         }
 
         public static uint Write(object argument, IDefinitionWriter writer)
         {
-            var definition = (PropertyDefinition)argument;
-            writer.WriteReference(definition);
+            var property = (PropertyDefinition)argument;
+            writer.WriteReference(property);
             return 8;
         }
     }

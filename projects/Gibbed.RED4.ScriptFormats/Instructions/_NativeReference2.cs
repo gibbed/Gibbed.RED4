@@ -55,14 +55,14 @@ namespace Gibbed.RED4.ScriptFormats.Instructions
 
         public static (object, uint) Read(IDefinitionReader reader)
         {
-            var definition = reader.ReadReference<NativeDefinition>();
-            return (definition, 8);
+            var native = reader.ReadReference<NativeDefinition>();
+            return (native, 8);
         }
 
         public static uint Write(object argument, IDefinitionWriter writer)
         {
-            var definition = (NativeDefinition)argument;
-            writer.WriteReference(definition);
+            var native = (NativeDefinition)argument;
+            writer.WriteReference(native);
             return 8;
         }
     }

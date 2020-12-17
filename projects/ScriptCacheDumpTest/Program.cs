@@ -200,28 +200,28 @@ namespace ScriptCacheDumpTest
 
                 var instruction = group.Instruction;
 
-                if (instruction.LoadInfo == null)
+                if (instruction.LoadPosition < 0)
                 {
-                    sb.Append($"  (@0x?????? ????) @???? #{opcodeIndex++,-4}");
+                    sb.Append($"  (@0x?????? ????) #{opcodeIndex++,-4}");
                 }
                 else
                 {
-                    var loadInfo = instruction.LoadInfo.Value;
+                    var loadPosition = instruction.LoadPosition;
 
                     long absolutePosition;
                     long relativePosition;
                     if (validate)
                     {
-                        absolutePosition = loadInfo.BasePosition + function.LoadPosition;
-                        relativePosition = loadInfo.BasePosition - function.CodeLoadPosition;
+                        absolutePosition = loadPosition + function.LoadPosition;
+                        relativePosition = loadPosition - function.CodeLoadPosition;
                     }
                     else
                     {
-                        absolutePosition = loadInfo.BasePosition;
-                        relativePosition = loadInfo.BasePosition - function.CodeLoadPosition;
+                        absolutePosition = loadPosition;
+                        relativePosition = loadPosition - function.CodeLoadPosition;
                     }
 
-                    sb.Append($"  (@0x{absolutePosition:X6} {relativePosition,4}) @{loadInfo.Offset,-4} #{opcodeIndex++,-4}");
+                    sb.Append($"  (@0x{absolutePosition:X6} {relativePosition,4}) #{opcodeIndex++,-4}");
                 }
 
                 sb.Append(indent);
@@ -262,89 +262,53 @@ namespace ScriptCacheDumpTest
                 sb.Append(string.Join(", ", bytes.Select(b => "0x" + b.ToString("X2")).ToArray()));
                 sb.AppendLine(")");
             }
-            else if (instruction.Op == Opcode.EnumConst)
+            else if (instruction.Opcode == Opcode.EnumConst)
             {
                 var (enumeration, enumeral) = (EnumConst)instruction.Argument;
                 sb.AppendLine($" ({enumeration.ToPath()}, {enumeral.ToName()})");
             }
-            else if (instruction.Op == Opcode.LocalVar)
+            else if (instruction.Opcode == Opcode.LocalVar)
             {
                 var local = (LocalDefinition)instruction.Argument;
                 sb.AppendLine($" {local.ToName()} // {local.Type.ToPath()}");
             }
-            else if (instruction.Op == Opcode.ParamVar)
+            else if (instruction.Opcode == Opcode.ParamVar)
             {
                 var parameter = (ParameterDefinition)instruction.Argument;
                 sb.AppendLine($" {parameter.ToName()} // {parameter.Type.ToPath()}");
             }
-            else if (instruction.Op == Opcode.ObjectVar)
+            else if (instruction.Opcode == Opcode.ObjectVar)
             {
                 var property = (PropertyDefinition)instruction.Argument;
                 sb.AppendLine($" {property.ToPath()} // {property.Type.ToPath()}");
             }
-            else if (instruction.Op == Opcode.Jump ||
-                instruction.Op == Opcode.JumpIfFalse ||
-                instruction.Op == Opcode.Context)
+            else if (instruction.Opcode == Opcode.Jump ||
+                instruction.Opcode == Opcode.JumpIfFalse ||
+                instruction.Opcode == Opcode.Skip ||
+                instruction.Opcode == Opcode.Context)
             {
-                var jumpOffset = (short)instruction.Argument;
-                sb.Append($" {jumpOffset:+#;-#}");
-                if (instruction.LoadInfo.HasValue == true)
-                {
-                    sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
-                }
-                sb.AppendLine();
+                var targetIndex = (int)instruction.Argument;
+                sb.AppendLine($" =>{targetIndex}");
             }
-            else if (instruction.Op == Opcode.Switch)
+            else if (instruction.Opcode == Opcode.Switch)
             {
-                var (switchType, firstCaseOffset) = (Switch)instruction.Argument;
-                sb.Append($" ({firstCaseOffset:+#;-#}");
-                if (instruction.LoadInfo.HasValue == true)
-                {
-                    sb.Append($" => {instruction.LoadInfo.Value.Offset + firstCaseOffset}");
-                }
-                sb.Append($", {switchType.ToPath()}");
+                var (switchType, firstCaseIndex) = (Switch)instruction.Argument;
+                sb.Append($" (=>{firstCaseIndex}, {switchType.ToPath()}");
                 /*if (switchType.BaseType != null)
                 {
                     sb.Append($" \/\* {switchType.BaseType.ToPath()} \*\/");
                 }*/
                 sb.AppendLine($")");
             }
-            else if (instruction.Op == Opcode.SwitchLabel)
+            else if (instruction.Opcode == Opcode.SwitchLabel)
             {
-                var (falseOffset, trueOffset) = (SwitchLabel)instruction.Argument;
-                sb.Append($" (false: {falseOffset:+#;-#}");
-                if (instruction.LoadInfo.HasValue == true)
-                {
-                    sb.Append($" => {instruction.LoadInfo.Value.Offset + falseOffset}");
-                }
-                sb.Append($", true: {trueOffset:+#;-#}");
-                if (instruction.LoadInfo.HasValue == true)
-                {
-                    sb.Append($" => {instruction.LoadInfo.Value.Offset + trueOffset}");
-                }
-                sb.AppendLine(")");
+                var (falseIndex, trueIndex) = (SwitchLabel)instruction.Argument;
+                sb.AppendLine($" (false=>{falseIndex}, true=>{trueIndex})");
             }
-            else if (instruction.Op == Opcode.Skip)
+            else if (instruction.Opcode == Opcode.FinalFunc)
             {
-                var jumpOffset = (short)instruction.Argument;
-                sb.Append($" {jumpOffset:+#;-#}");
-                if (instruction.LoadInfo.HasValue == true)
-                {
-                    sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
-                }
-                sb.AppendLine();
-            }
-            else if (instruction.Op == Opcode.FinalFunc)
-            {
-                var (jumpOffset, sourceLine, function) = (FinalFunc)instruction.Argument;
-
-                sb.Append($" ({jumpOffset:+#;-#}");
-                if (instruction.LoadInfo.HasValue == true)
-                {
-                    sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
-                }
-                sb.Append($", {sourceLine}, {function.ToPath()})");
-
+                var (nextIndex, sourceLine, function) = (FinalFunc)instruction.Argument;
+                sb.Append($" (=>{nextIndex}, {sourceLine}, {function.ToPath()})");
                 if (function.Parameters.Count > 0)
                 {
                     sb.Append($" // parameters={function.Parameters.Count} (");
@@ -359,19 +323,12 @@ namespace ScriptCacheDumpTest
                     }
                     sb.Append(")");
                 }
-
                 sb.AppendLine();
             }
-            else if (instruction.Op == Opcode.VirtualFunc)
+            else if (instruction.Opcode == Opcode.VirtualFunc)
             {
-                var (jumpOffset, unknown, name) = (VirtualFunc)instruction.Argument;
-
-                sb.Append($" ({jumpOffset:+#;-#}");
-                if (instruction.LoadInfo.HasValue == true)
-                {
-                    sb.Append($" => {instruction.LoadInfo.Value.Offset + jumpOffset}");
-                }
-                sb.AppendLine($", {unknown}, {name})");
+                var (nextIndex, sourceLine, name) = (VirtualFunc)instruction.Argument;
+                sb.Append($" (=>{nextIndex}, {sourceLine}, {name})");
             }
             else
             {
@@ -380,10 +337,10 @@ namespace ScriptCacheDumpTest
 
             static string GetOpcodeName(Instruction instruction)
             {
-                var name = Enum.GetName(typeof(Opcode), instruction.Op);
+                var name = Enum.GetName(typeof(Opcode), instruction.Opcode);
                 if (name == null || name.StartsWith("Unknown") == true)
                 {
-                    return ((byte)instruction.Op).ToString() + "?";
+                    return ((byte)instruction.Opcode).ToString() + "?";
                 }
                 return name;
             }

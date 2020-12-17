@@ -29,16 +29,16 @@ namespace Gibbed.RED4.ScriptFormats.Instructions
 
         public static (object, uint) Read(IDefinitionReader reader)
         {
-            var jumpOffset = reader.ReadValueS16();
-            jumpOffset += 1 + 2; // make relative to the instruction
-            return (jumpOffset, 2);
+            var targetOffset = reader.ReadValueS16();
+            targetOffset += 1 + 2; // make relative to the instruction
+            return (targetOffset, 2);
         }
 
         public static uint Write(object argument, IDefinitionWriter writer)
         {
-            var jumpOffset = (short)argument;
-            jumpOffset -= 1 + 2; // make relative to the jump offset;
-            writer.WriteValueS16(jumpOffset);
+            var targetOffset = (short)argument;
+            targetOffset -= 1 + 2; // make relative to the jump offset;
+            writer.WriteValueS16(targetOffset);
             return 2;
         }
     }

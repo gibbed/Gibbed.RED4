@@ -22,48 +22,26 @@
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    [Instruction(Opcode.Conditional)]
     public struct Conditional
     {
-        public const int ChainCount = 2;
+        public int FalseIndex;
+        public int TrueIndex;
 
-        public short FalseOffset;
-        public short TrueOffset;
-
-        public Conditional(short falseOffset, short trueOffset)
+        public Conditional(int falseIndex, int trueIndex)
         {
-            this.FalseOffset = falseOffset;
-            this.TrueOffset = trueOffset;
+            this.FalseIndex = falseIndex;
+            this.TrueIndex = trueIndex;
         }
 
-        internal static (object, uint) Read(IDefinitionReader reader)
+        public void Deconstruct(out int falseIndex, out int trueIndex)
         {
-            var falseOffset = reader.ReadValueS16();
-            falseOffset += 1 + 2; // make relative to the instruction
-            var trueOffset = reader.ReadValueS16();
-            trueOffset += 1 + 2 + 2; // make relative to the instruction
-            return (new SwitchLabel(falseOffset, trueOffset), 4);
-        }
-
-        internal static uint Write(object argument, IDefinitionWriter writer)
-        {
-            var (falseOffset, trueOffset) = (SwitchLabel)argument;
-            falseOffset -= 1 + 2; // make relative to the jump offset
-            trueOffset -= 1 + 2 + 2; // make relative to the jump offset
-            writer.WriteValueS16(falseOffset);
-            writer.WriteValueS16(trueOffset);
-            return 4;
-        }
-
-        public void Deconstruct(out short falseOffset, out short trueOffset)
-        {
-            falseOffset = this.FalseOffset;
-            trueOffset = this.TrueOffset;
+            falseIndex = this.FalseIndex;
+            trueIndex = this.TrueIndex;
         }
 
         public override string ToString()
         {
-            return $"({this.FalseOffset}, {this.TrueOffset})";
+            return $"({this.FalseIndex}, {this.TrueIndex})";
         }
     }
 }

@@ -22,44 +22,48 @@
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    [Instruction(Opcode.Unknown47)]
-    public struct Unknown47
+    [Instruction(Opcode.Conditional)]
+    public struct Conditional_Offset
     {
-        public const int ChainCount = 0;
+        public const int ChainCount = 2;
 
-        public byte[] Bytes;
-        public byte Unknown;
+        public short FalseOffset;
+        public short TrueOffset;
 
-        public Unknown47(byte[] bytes, byte unknown)
+        public Conditional_Offset(short falseOffset, short trueOffset)
         {
-            this.Bytes = bytes;
-            this.Unknown = unknown;
+            this.FalseOffset = falseOffset;
+            this.TrueOffset = trueOffset;
         }
 
         internal static (object, uint) Read(IDefinitionReader reader)
         {
-            var bytes = reader.ReadBytes();
-            var unknown = reader.ReadValueU8();
-            return (new Unknown47(bytes, unknown), (uint)bytes.Length + 5);
+            var falseOffset = reader.ReadValueS16();
+            falseOffset += 1 + 2; // make relative to the instruction
+            var trueOffset = reader.ReadValueS16();
+            trueOffset += 1 + 2 + 2; // make relative to the instruction
+            return (new Conditional_Offset(falseOffset, trueOffset), 4);
         }
 
         internal static uint Write(object argument, IDefinitionWriter writer)
         {
-            var (bytes, unknown) = (Unknown47)argument;
-            writer.WriteBytes(bytes);
-            writer.WriteValueU8(unknown);
-            return (uint)bytes.Length + 5;
+            var (falseOffset, trueOffset) = (Conditional_Offset)argument;
+            falseOffset -= 1 + 2; // make relative to the jump offset
+            trueOffset -= 1 + 2 + 2; // make relative to the jump offset
+            writer.WriteValueS16(falseOffset);
+            writer.WriteValueS16(trueOffset);
+            return 4;
         }
 
-        public void Deconstruct(out byte[] bytes, out byte unknown)
+        public void Deconstruct(out short falseOffset, out short trueOffset)
         {
-            bytes = this.Bytes;
-            unknown = this.Unknown;
+            falseOffset = this.FalseOffset;
+            trueOffset = this.TrueOffset;
         }
 
         public override string ToString()
         {
-            return $"({this.Bytes}, {this.Unknown})";
+            return $"({this.FalseOffset}, {this.TrueOffset})";
         }
     }
 }

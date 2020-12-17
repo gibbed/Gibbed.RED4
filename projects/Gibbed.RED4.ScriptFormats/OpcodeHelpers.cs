@@ -20,28 +20,28 @@
  *    distribution.
  */
 
-namespace Gibbed.RED4.ScriptFormats.Instructions
+namespace Gibbed.RED4.ScriptFormats
 {
-    public struct SwitchLabel
+    public static class OpcodeHelpers
     {
-        public int FalseIndex;
-        public int TrueIndex;
-
-        public SwitchLabel(int falseIndex, int trueIndex)
+        public static bool IsJump(this Opcode opcode)
         {
-            this.FalseIndex = falseIndex;
-            this.TrueIndex = trueIndex;
-        }
-
-        public void Deconstruct(out int falseIndex, out int trueIndex)
-        {
-            falseIndex = this.FalseIndex;
-            trueIndex = this.TrueIndex;
-        }
-
-        public override string ToString()
-        {
-            return $"({this.FalseIndex}, {this.TrueIndex})";
+            switch (opcode)
+            {
+                case Opcode.Switch:
+                case Opcode.SwitchLabel:
+                case Opcode.Jump:
+                case Opcode.JumpIfFalse:
+                case Opcode.Skip:
+                case Opcode.Context:
+                case Opcode.Conditional:
+                case Opcode.FinalFunc:
+                case Opcode.VirtualFunc:
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

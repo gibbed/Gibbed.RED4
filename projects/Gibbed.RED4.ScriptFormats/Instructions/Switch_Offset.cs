@@ -24,26 +24,46 @@ using Gibbed.RED4.ScriptFormats.Definitions;
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    public struct Switch
+    [Instruction(Opcode.Switch)]
+    internal struct Switch_Offset
     {
-        public NativeDefinition Type;
-        public int FirstCaseIndex;
+        public const int ChainCount = -1;
 
-        public Switch(NativeDefinition type, int firstCaseIndex)
+        public NativeDefinition Type;
+        public short FirstCaseOffset;
+
+        public Switch_Offset(NativeDefinition type, short firstCaseOffset)
         {
             this.Type = type;
-            this.FirstCaseIndex = firstCaseIndex;
+            this.FirstCaseOffset = firstCaseOffset;
         }
 
-        public void Deconstruct(out NativeDefinition type, out int firstCaseIndex)
+        internal static (object, uint) Read(IDefinitionReader reader)
+        {
+            var type = reader.ReadReference<NativeDefinition>();
+            var firstCaseOffset = reader.ReadValueS16();
+            firstCaseOffset += 1 + 8 + 2; // make relative to the instruction
+            return (new Switch_Offset(type, firstCaseOffset), 10);
+        }
+
+        internal static uint Write(object argument, IDefinitionWriter writer)
+        {
+            var (type, firstCaseOffset) = (Switch_Offset)argument;
+            firstCaseOffset -= 1 + 8 + 2; // make relative to the jump offset
+            writer.WriteReference(type);
+            writer.WriteValueS16(firstCaseOffset);
+            return 10;
+        }
+
+        public void Deconstruct(out NativeDefinition type, out short firstCaseOffset)
         {
             type = this.Type;
-            firstCaseIndex = this.FirstCaseIndex;
+            firstCaseOffset = this.FirstCaseOffset;
         }
 
         public override string ToString()
         {
-            return $"({this.Type}, {this.FirstCaseIndex})";
+            return $"({this.Type}, {this.FirstCaseOffset})";
         }
     }
 }
