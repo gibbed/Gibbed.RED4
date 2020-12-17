@@ -46,8 +46,8 @@ namespace Gibbed.RED4.FileFormats.Hashing
             var hash = seed;
             foreach (char t in value)
             {
-                hash *= 0x100000001B3ul;
                 hash ^= t;
+                hash *= 0x100000001B3ul;
             }
             return hash;
         }
