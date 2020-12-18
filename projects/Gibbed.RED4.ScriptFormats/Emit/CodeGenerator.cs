@@ -31,11 +31,19 @@ namespace Gibbed.RED4.ScriptFormats.Emit
     {
         private readonly List<(Opcode opcode, object argument)> _Instructions;
         private readonly Dictionary<Label, int> _Labels;
+        private readonly int _BaseIndex;
 
-        public CodeGenerator()
+        public CodeGenerator(int baseIndex)
         {
             this._Instructions = new List<(Opcode opcode, object argument)>();
             this._Labels = new Dictionary<Label, int>();
+            this._BaseIndex = baseIndex;
+        }
+
+        public CodeGenerator()
+            : this(0)
+        {
+
         }
 
         public void Reset()
@@ -46,6 +54,7 @@ namespace Gibbed.RED4.ScriptFormats.Emit
 
         public Instruction[] GetCode()
         {
+            var baseIndex = this._BaseIndex;
             foreach (var kv in this._Labels)
             {
                 kv.Key.TargetIndex = kv.Value;
@@ -54,12 +63,12 @@ namespace Gibbed.RED4.ScriptFormats.Emit
             for (int i = 0; i < this._Instructions.Count; i++)
             {
                 var (opcode, argument) = this._Instructions[i];
-                instructions[i] = GetCode(opcode, argument);
+                instructions[i] = GetCode(baseIndex, opcode, argument);
             }
             return instructions;
         }
 
-        private static Instruction GetCode(Opcode opcode, object argument)
+        private static Instruction GetCode(int baseIndex, Opcode opcode, object argument)
         {
             switch (opcode)
             {
@@ -165,7 +174,7 @@ namespace Gibbed.RED4.ScriptFormats.Emit
                     {
                         throw new InvalidOperationException();
                     }
-                    return new Instruction(opcode, new Switch(native, firstCaseLabel.TargetIndex));
+                    return new Instruction(opcode, new Switch(native, baseIndex + firstCaseLabel.TargetIndex));
                 }
                 case Opcode.SwitchLabel:
                 {
@@ -178,7 +187,7 @@ namespace Gibbed.RED4.ScriptFormats.Emit
                     {
                         throw new InvalidOperationException();
                     }
-                    return new Instruction(opcode, new SwitchLabel(falseLabel.TargetIndex, trueLabel.TargetIndex));
+                    return new Instruction(opcode, new SwitchLabel(baseIndex + falseLabel.TargetIndex, baseIndex + trueLabel.TargetIndex));
                 }
                 case Opcode.Jump:
                 case Opcode.JumpIfFalse:
@@ -190,7 +199,7 @@ namespace Gibbed.RED4.ScriptFormats.Emit
                     {
                         throw new InvalidOperationException();
                     }
-                    return new Instruction(opcode, targetLabel.TargetIndex);
+                    return new Instruction(opcode, baseIndex + targetLabel.TargetIndex);
                 }
                 case Opcode.Conditional:
                 {
@@ -203,7 +212,7 @@ namespace Gibbed.RED4.ScriptFormats.Emit
                     {
                         throw new InvalidOperationException();
                     }
-                    return new Instruction(opcode, new Conditional(falseLabel.TargetIndex, trueLabel.TargetIndex));
+                    return new Instruction(opcode, new Conditional(baseIndex + falseLabel.TargetIndex, baseIndex + trueLabel.TargetIndex));
                 }
                 case Opcode.Constructor:
                 {
@@ -217,7 +226,7 @@ namespace Gibbed.RED4.ScriptFormats.Emit
                     {
                         throw new InvalidOperationException();
                     }
-                    return new Instruction(opcode, new FinalFunc(targetLabel.TargetIndex, sourceLine, function));
+                    return new Instruction(opcode, new FinalFunc(baseIndex + targetLabel.TargetIndex, sourceLine, function));
                 }
                 case Opcode.VirtualFunc:
                 {
@@ -226,7 +235,7 @@ namespace Gibbed.RED4.ScriptFormats.Emit
                     {
                         throw new InvalidOperationException();
                     }
-                    return new Instruction(opcode, new VirtualFunc(targetLabel.TargetIndex, sourceLine, name));
+                    return new Instruction(opcode, new VirtualFunc(baseIndex + targetLabel.TargetIndex, sourceLine, name));
                 }
                 case Opcode.Unknown47:
                 {
