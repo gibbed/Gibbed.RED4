@@ -435,7 +435,7 @@ namespace Gibbed.RED4.ScriptFormats.Emit
             throw new ArgumentException($"{opcode} not supported with these arguments", nameof(opcode));
         }
 
-        public void EmitDefault(Opcode opcode, string argument)
+        public void Emit(Opcode opcode, string argument)
         {
             switch (opcode)
             {
