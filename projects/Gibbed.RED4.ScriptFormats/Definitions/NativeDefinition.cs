@@ -30,7 +30,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 
         public NativeType NativeType { get; set; }
         public Definition BaseType { get; set; }
-        public uint ArraySize { get; set; }
+        public int ArraySize { get; set; }
 
         private static bool HasBaseType(NativeType type)
         {
@@ -64,7 +64,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 
             if (this.NativeType == NativeType.StaticArray)
             {
-                writer.WriteValueU32(this.ArraySize);
+                writer.WriteValueS32(this.ArraySize);
             }
         }
 
@@ -78,7 +78,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             var nativeType = (NativeType)reader.ReadValueU8();
             this.NativeType = nativeType;
             this.BaseType = HasBaseType(NativeType) == true ? reader.ReadReference() : null;
-            this.ArraySize = nativeType == NativeType.StaticArray ? reader.ReadValueU32() : 0;
+            this.ArraySize = nativeType == NativeType.StaticArray ? reader.ReadValueS32() : 0;
         }
     }
 }
