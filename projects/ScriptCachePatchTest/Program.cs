@@ -48,10 +48,11 @@ namespace ScriptCachePatchTest
                 .OfType<FunctionDefinition>()
                 .Where(fd => (fd.Flags & FunctionFlags.HasCode) != 0))
             {
-                for (int i = 0; i < function.Code.Count; i++)
+                for (int i = 0; i < function.Code.Count; )
                 {
                     if (function.Code[i].Opcode != Opcode.StaticArraySize)
                     {
+                        i++;
                         continue;
                     }
 
@@ -61,6 +62,7 @@ namespace ScriptCachePatchTest
                         throw new InvalidOperationException();
                     }
 
+                    // replace StaticArraySize with int constant
                     var staticArraySize = staticArrayType.ArraySize;
                     function.Code[i] = staticArraySize switch
                     {
@@ -68,7 +70,9 @@ namespace ScriptCachePatchTest
                         1 => new Instruction(Opcode.Int32One),
                         _ => new Instruction(Opcode.Int32Const, staticArraySize)
                     };
+                    // replace referencing of static array with a nop
                     function.Code[i + 1] = new Instruction(Opcode.Nop);
+                    i += 2;
                 }
             }
 
