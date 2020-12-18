@@ -24,17 +24,17 @@ using Gibbed.RED4.ScriptFormats.Definitions;
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    [Instruction(Opcode.Unknown48)]
+    [Instruction(Opcode.ArrayClear)]
     [Instruction(Opcode.ArraySize)]
-    [Instruction(Opcode.Unknown60)]
-    [Instruction(Opcode.Unknown67)]
-    [Instruction(Opcode.Unknown69)]
-    [Instruction(Opcode.Unknown78)]
-    [Instruction(Opcode.StructToString)]
-    [Instruction(Opcode.Unknown86)]
-    [Instruction(Opcode.Unknown87)]
-    [Instruction(Opcode.Unknown96)]
-    [Instruction(Opcode.Unknown97)]
+    [Instruction(Opcode.ArrayPopBack)]
+    [Instruction(Opcode.ArrayLast)]
+    [Instruction(Opcode.StaticArraySize)]
+    [Instruction(Opcode.StaticArrayLast)]
+    [Instruction(Opcode.ToString)]
+    [Instruction(Opcode.ToVariant)]
+    [Instruction(Opcode.FromVariant)]
+    [Instruction(Opcode.ToScriptRef)]
+    [Instruction(Opcode.FromScriptRef)]
     internal static class _NativeReference1
     {
         public const int ChainCount = 1;

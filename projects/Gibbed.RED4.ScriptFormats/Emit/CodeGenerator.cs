@@ -95,56 +95,56 @@ namespace Gibbed.RED4.ScriptFormats.Emit
                 case Opcode.StructMember:
                 case Opcode.TestEqual:
                 case Opcode.TestNotEqual:
-                case Opcode.Unknown44:
-                case Opcode.Unknown45:
+                case Opcode.New:
+                case Opcode.Delete:
                 case Opcode.This:
-                case Opcode.Unknown48:
+                case Opcode.ArrayClear:
                 case Opcode.ArraySize:
-                case Opcode.Unknown50:
-                case Opcode.Unknown51:
-                case Opcode.Unknown52:
-                case Opcode.Unknown53:
-                case Opcode.Unknown54:
+                case Opcode.ArrayResize:
+                case Opcode.ArrayFindFirst:
+                case Opcode.ArrayFindFirstFast:
+                case Opcode.ArrayFindLast:
+                case Opcode.ArrayFindLastFast:
                 case Opcode.ArrayContains:
-                case Opcode.Unknown56:
-                case Opcode.Unknown57:
-                case Opcode.Unknown58:
-                case Opcode.Unknown59:
-                case Opcode.Unknown60:
+                case Opcode.ArrayContainsFast:
+                case Opcode.ArrayUnknown57:
+                case Opcode.ArrayUnknown58:
+                case Opcode.ArrayPushBack:
+                case Opcode.ArrayPopBack:
                 case Opcode.ArrayInsert:
-                case Opcode.Unknown62:
-                case Opcode.Unknown63:
-                case Opcode.Unknown64:
-                case Opcode.Unknown65:
-                case Opcode.Unknown66:
-                case Opcode.Unknown67:
+                case Opcode.ArrayRemove:
+                case Opcode.ArrayRemoveFast:
+                case Opcode.ArrayGrow:
+                case Opcode.ArrayErase:
+                case Opcode.ArrayEraseFast:
+                case Opcode.ArrayLast:
                 case Opcode.ArrayElement:
-                case Opcode.Unknown69:
-                case Opcode.Unknown70:
-                case Opcode.Unknown71:
-                case Opcode.Unknown72:
-                case Opcode.Unknown73:
-                case Opcode.Unknown74:
-                case Opcode.Unknown75:
-                case Opcode.Unknown76:
-                case Opcode.Unknown77:
-                case Opcode.Unknown78:
-                case Opcode.Unknown79:
-                case Opcode.Unknown80:
-                case Opcode.Unknown81:
-                case Opcode.StructToString:
-                case Opcode.Unknown86:
-                case Opcode.Unknown87:
-                case Opcode.Unknown88:
-                case Opcode.Unknown89:
-                case Opcode.Unknown90:
+                case Opcode.StaticArraySize:
+                case Opcode.StaticArrayFindFirst:
+                case Opcode.StaticArrayFindFirstFast:
+                case Opcode.StaticArrayFindLast:
+                case Opcode.StaticArrayFindLastFast:
+                case Opcode.StaticArrayContains:
+                case Opcode.StaticArrayContainsFast:
+                case Opcode.StaticArrayUnknown76:
+                case Opcode.StaticArrayUnknown77:
+                case Opcode.StaticArrayLast:
+                case Opcode.StaticArrayElement:
+                case Opcode.HandleToBool:
+                case Opcode.WeakHandleToBool:
+                case Opcode.ToString:
+                case Opcode.ToVariant:
+                case Opcode.FromVariant:
+                case Opcode.VariantIsValid:
+                case Opcode.VariantIsHandle:
+                case Opcode.VariantIsArray:
                 case Opcode.Unknown91:
-                case Opcode.Unknown92:
-                case Opcode.Unknown93:
-                case Opcode.Unknown94:
-                case Opcode.Unknown95:
-                case Opcode.Unknown96:
-                case Opcode.Unknown97:
+                case Opcode.VariantToString:
+                case Opcode.WeakHandleToHandle:
+                case Opcode.HandleToWeakHandle:
+                case Opcode.WeakHandleNull:
+                case Opcode.ToScriptRef:
+                case Opcode.FromScriptRef:
                 case Opcode.Unknown98:
                 {
                     return new Instruction(opcode, argument);
@@ -233,8 +233,8 @@ namespace Gibbed.RED4.ScriptFormats.Emit
                     var (bytes, unknown) = ((byte[], byte))argument;
                     return new Instruction(opcode, new Unknown47(bytes, unknown));
                 }
-                case Opcode.EnumToInt:
-                case Opcode.IntToEnum:
+                case Opcode.EnumToInt32:
+                case Opcode.Int32ToEnum:
                 {
                     var (type, size) = ((NativeDefinition, byte))argument;
                     return new Instruction(opcode, new EnumCast(type, size));
@@ -284,18 +284,18 @@ namespace Gibbed.RED4.ScriptFormats.Emit
                 case Opcode.SwitchDefault:
                 case Opcode.ParamEnd:
                 case Opcode.Return:
-                case Opcode.Unknown45:
+                case Opcode.Delete:
                 case Opcode.This:
-                case Opcode.Unknown80:
-                case Opcode.Unknown81:
-                case Opcode.Unknown88:
-                case Opcode.Unknown89:
-                case Opcode.Unknown90:
+                case Opcode.HandleToBool:
+                case Opcode.WeakHandleToBool:
+                case Opcode.VariantIsValid:
+                case Opcode.VariantIsHandle:
+                case Opcode.VariantIsArray:
                 case Opcode.Unknown91:
-                case Opcode.Unknown92:
-                case Opcode.Unknown93:
-                case Opcode.Unknown94:
-                case Opcode.Unknown95:
+                case Opcode.VariantToString:
+                case Opcode.WeakHandleToHandle:
+                case Opcode.HandleToWeakHandle:
+                case Opcode.WeakHandleNull:
                 case Opcode.Unknown98:
                 {
                     this._Instructions.Add((opcode, null));
@@ -604,7 +604,7 @@ namespace Gibbed.RED4.ScriptFormats.Emit
             {
                 case Opcode.TestEqual:
                 case Opcode.TestNotEqual:
-                case Opcode.Unknown44:
+                case Opcode.New:
                 {
                     this._Instructions.Add((opcode, argument));
                     return;
@@ -630,43 +630,43 @@ namespace Gibbed.RED4.ScriptFormats.Emit
         {
             switch (opcode)
             {
-                case Opcode.Unknown48:
+                case Opcode.ArrayClear:
                 case Opcode.ArraySize:
-                case Opcode.Unknown50:
-                case Opcode.Unknown51:
-                case Opcode.Unknown52:
-                case Opcode.Unknown53:
-                case Opcode.Unknown54:
+                case Opcode.ArrayResize:
+                case Opcode.ArrayFindFirst:
+                case Opcode.ArrayFindFirstFast:
+                case Opcode.ArrayFindLast:
+                case Opcode.ArrayFindLastFast:
                 case Opcode.ArrayContains:
-                case Opcode.Unknown56:
-                case Opcode.Unknown57:
-                case Opcode.Unknown58:
-                case Opcode.Unknown59:
-                case Opcode.Unknown60:
+                case Opcode.ArrayContainsFast:
+                case Opcode.ArrayUnknown57:
+                case Opcode.ArrayUnknown58:
+                case Opcode.ArrayPushBack:
+                case Opcode.ArrayPopBack:
                 case Opcode.ArrayInsert:
-                case Opcode.Unknown62:
-                case Opcode.Unknown63:
-                case Opcode.Unknown64:
-                case Opcode.Unknown65:
-                case Opcode.Unknown66:
-                case Opcode.Unknown67:
+                case Opcode.ArrayRemove:
+                case Opcode.ArrayRemoveFast:
+                case Opcode.ArrayGrow:
+                case Opcode.ArrayErase:
+                case Opcode.ArrayEraseFast:
+                case Opcode.ArrayLast:
                 case Opcode.ArrayElement:
-                case Opcode.Unknown69:
-                case Opcode.Unknown70:
-                case Opcode.Unknown71:
-                case Opcode.Unknown72:
-                case Opcode.Unknown73:
-                case Opcode.Unknown74:
-                case Opcode.Unknown75:
-                case Opcode.Unknown76:
-                case Opcode.Unknown77:
-                case Opcode.Unknown78:
-                case Opcode.Unknown79:
-                case Opcode.StructToString:
-                case Opcode.Unknown86:
-                case Opcode.Unknown87:
-                case Opcode.Unknown96:
-                case Opcode.Unknown97:
+                case Opcode.StaticArraySize:
+                case Opcode.StaticArrayFindFirst:
+                case Opcode.StaticArrayFindFirstFast:
+                case Opcode.StaticArrayFindLast:
+                case Opcode.StaticArrayFindLastFast:
+                case Opcode.StaticArrayContains:
+                case Opcode.StaticArrayContainsFast:
+                case Opcode.StaticArrayUnknown76:
+                case Opcode.StaticArrayUnknown77:
+                case Opcode.StaticArrayLast:
+                case Opcode.StaticArrayElement:
+                case Opcode.ToString:
+                case Opcode.ToVariant:
+                case Opcode.FromVariant:
+                case Opcode.ToScriptRef:
+                case Opcode.FromScriptRef:
                 {
                     this._Instructions.Add((opcode, argument));
                     return;
@@ -679,8 +679,8 @@ namespace Gibbed.RED4.ScriptFormats.Emit
         {
             switch (opcode)
             {
-                case Opcode.EnumToInt:
-                case Opcode.IntToEnum:
+                case Opcode.EnumToInt32:
+                case Opcode.Int32ToEnum:
                 {
                     this._Instructions.Add((opcode, (argument1, argument2)));
                     return;

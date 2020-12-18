@@ -124,7 +124,7 @@ namespace ScriptCachePatchTest
             cg.Emit(Opcode.Assign);
             {
                 cg.Emit(Opcode.LocalVar, myLocal0);
-                cg.Emit(Opcode.Unknown44, inkMenuInstanceSwitchToScenarioClass);
+                cg.Emit(Opcode.New, inkMenuInstanceSwitchToScenarioClass);
             }
 
             // event.Init(StringToName(name), 0)

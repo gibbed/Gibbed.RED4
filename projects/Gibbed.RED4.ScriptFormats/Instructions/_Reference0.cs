@@ -22,7 +22,7 @@
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    [Instruction(Opcode.Unknown44)]
+    [Instruction(Opcode.New)]
     internal static class _Reference0
     {
         public const int ChainCount = 0;

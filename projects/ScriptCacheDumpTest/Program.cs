@@ -277,7 +277,7 @@ namespace ScriptCacheDumpTest
                 var parameter = (ParameterDefinition)instruction.Argument;
                 sb.AppendLine($" {parameter.ToName()} // {parameter.Type.ToPath()}");
             }
-            else if (instruction.Opcode == Opcode.ObjectVar)
+            else if (instruction.Opcode == Opcode.ObjectVar || instruction.Opcode == Opcode.StructMember)
             {
                 var property = (PropertyDefinition)instruction.Argument;
                 sb.AppendLine($" {property.ToPath()} // {property.Type.ToPath()}");

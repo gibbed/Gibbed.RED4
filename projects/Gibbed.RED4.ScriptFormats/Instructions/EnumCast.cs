@@ -24,8 +24,8 @@ using Gibbed.RED4.ScriptFormats.Definitions;
 
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    [Instruction(Opcode.EnumToInt)]
-    [Instruction(Opcode.IntToEnum)]
+    [Instruction(Opcode.EnumToInt32)]
+    [Instruction(Opcode.Int32ToEnum)]
     public struct EnumCast
     {
         public const int ChainCount = 1;

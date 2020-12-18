@@ -23,15 +23,15 @@
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
     [Instruction(Opcode.Return)]
-    [Instruction(Opcode.Unknown80)]
-    [Instruction(Opcode.Unknown81)]
-    [Instruction(Opcode.Unknown88)]
-    [Instruction(Opcode.Unknown89)]
-    [Instruction(Opcode.Unknown90)]
+    [Instruction(Opcode.HandleToBool)]
+    [Instruction(Opcode.WeakHandleToBool)]
+    [Instruction(Opcode.VariantIsValid)]
+    [Instruction(Opcode.VariantIsHandle)]
+    [Instruction(Opcode.VariantIsArray)]
     [Instruction(Opcode.Unknown91)]
-    [Instruction(Opcode.Unknown92)]
-    [Instruction(Opcode.Unknown93)]
-    [Instruction(Opcode.Unknown94)]
+    [Instruction(Opcode.VariantToString)]
+    [Instruction(Opcode.WeakHandleToHandle)]
+    [Instruction(Opcode.HandleToWeakHandle)]
     internal static class _Empty1
     {
         public const int ChainCount = 1;

@@ -31,9 +31,9 @@ namespace Gibbed.RED4.ScriptFormats.Instructions
     [Instruction(Opcode.Target)]
     [Instruction(Opcode.Unknown27)]
     [Instruction(Opcode.ParamEnd)]
-    [Instruction(Opcode.Unknown45)]
+    [Instruction(Opcode.Delete)]
     [Instruction(Opcode.This)]
-    [Instruction(Opcode.Unknown95)]
+    [Instruction(Opcode.WeakHandleNull)]
     [Instruction(Opcode.Unknown98)]
     internal static class _Empty0
     {
