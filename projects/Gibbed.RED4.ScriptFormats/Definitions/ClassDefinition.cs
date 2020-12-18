@@ -32,16 +32,16 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         public ClassDefinition()
         {
             this.Functions = new List<FunctionDefinition>();
-            this.Unknown20s = new List<PropertyDefinition>();
-            this.Unknown30s = new List<PropertyDefinition>();
+            this.Properties = new List<PropertyDefinition>();
+            this.OverriddenProperties = new List<PropertyDefinition>();
         }
 
         public Visibility Visibility { get; set; }
         public ClassFlags Flags { get; set; }
         public ClassDefinition BaseClass { get; set; }
         public List<FunctionDefinition> Functions { get; }
-        public List<PropertyDefinition> Unknown20s { get; }
-        public List<PropertyDefinition> Unknown30s { get; }
+        public List<PropertyDefinition> Properties { get; }
+        public List<PropertyDefinition> OverriddenProperties { get; }
 
         private static readonly ClassFlags KnownFlags =
             ClassFlags.Unknown0 | ClassFlags.IsAbstract |
@@ -80,11 +80,11 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             }
             if ((this.Flags & ClassFlags.Unknown5) != 0)
             {
-                writer.WriteReferences(this.Unknown20s);
+                writer.WriteReferences(this.Properties);
             }
             if ((this.Flags & ClassFlags.Unknown8) != 0)
             {
-                writer.WriteReferences(this.Unknown30s);
+                writer.WriteReferences(this.OverriddenProperties);
             }
         }
 
@@ -116,14 +116,14 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 : new PropertyDefinition[0];
 
             this.Functions.Clear();
-            this.Unknown20s.Clear();
-            this.Unknown30s.Clear();
+            this.Properties.Clear();
+            this.OverriddenProperties.Clear();
             this.Visibility = visibility;
             this.Flags = flags;
             this.BaseClass = baseClass;
             this.Functions.AddRange(functions);
-            this.Unknown20s.AddRange(unknown20s);
-            this.Unknown30s.AddRange(unknown30s);
+            this.Properties.AddRange(unknown20s);
+            this.OverriddenProperties.AddRange(unknown30s);
         }
     }
 }

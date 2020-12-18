@@ -38,16 +38,16 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         public Visibility Visibility { get; set; }
         public Definition Type { get; set; }
         public PropertyFlags Flags { get; set; }
-        public string UnknownDiscardedString { get; set; }
+        public string Hint { get; set; }
         public List<(string, string)> Unknown58s { get; }
         public List<(string, string)> Unknown38s { get; }
 
         private static readonly PropertyFlags KnownFlags =
-            PropertyFlags.Unknown0 | PropertyFlags.Unknown1 |
+            PropertyFlags.IsNative | PropertyFlags.Unknown1 |
             PropertyFlags.Unknown2 | PropertyFlags.Unknown3 |
-            PropertyFlags.Unknown4 | PropertyFlags.Unknown5 |
+            PropertyFlags.Unknown4 | PropertyFlags.HasHint |
             PropertyFlags.Unknown6 | PropertyFlags.Unknown7 |
-            PropertyFlags.Unknown8 | PropertyFlags.Unknown9 |
+            PropertyFlags.IsPersistent | PropertyFlags.Unknown9 |
             PropertyFlags.Unknown10;
 
         internal override void Serialize(IDefinitionWriter writer)
@@ -61,9 +61,9 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             writer.WriteReference(this.Type);
             writer.WriteValueU16((ushort)this.Flags);
 
-            if ((this.Flags & PropertyFlags.Unknown5) != 0)
+            if ((this.Flags & PropertyFlags.HasHint) != 0)
             {
-                writer.WriteStringU16(this.UnknownDiscardedString);
+                writer.WriteStringU16(this.Hint);
             }
 
             writer.WriteValueS32(this.Unknown58s.Count);
@@ -91,6 +91,17 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             var visibility = (Visibility)reader.ReadValueU8();
             var type = reader.ReadReference<NativeDefinition>();
 
+            /* Runtime conversion of flags:
+             *   0001 => 0001
+             *   0002 => 0002
+             *   0004 => 0004
+             *   0008 => 0008
+             *   0010 => 0010
+             *   0040 => 0020 ***
+             *   0100 => 0040 ***
+             *   0200 => 0080 ***
+             *   0400 => 0100 ***
+             */
             var flags = (PropertyFlags)reader.ReadValueU16();
             var unknownFlags = flags & ~KnownFlags;
             if (unknownFlags != PropertyFlags.None)
@@ -98,9 +109,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 throw new FormatException();
             }
 
-            var unknownDiscardedString = (flags & PropertyFlags.Unknown5) != 0
-                ? reader.ReadStringU16()
-                : null;
+            var hint = (flags & PropertyFlags.HasHint) != 0 ? reader.ReadStringU16() : null;
 
             var unknown58Count = reader.ReadValueU32();
             var unknown58s = new ValueTuple<string, string>[unknown58Count];
@@ -125,7 +134,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             this.Visibility = visibility;
             this.Type = type;
             this.Flags = flags;
-            this.UnknownDiscardedString = unknownDiscardedString;
+            this.Hint = hint;
             this.Unknown58s.AddRange(unknown58s);
             this.Unknown38s.AddRange(unknown38s);
         }
