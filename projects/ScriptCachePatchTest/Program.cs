@@ -21,7 +21,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Gibbed.RED4.ScriptFormats;
@@ -43,12 +42,32 @@ namespace ScriptCachePatchTest
                 cache = CacheFile.Load(input, validate);
             }
 
-            // Remove StaticArraySize usage...
+            RemoveStaticArraySizeUsage(cache);
+
+            var mySourceFile = new SourceFileDefinition(@"_\gibbed\exec.script");
+            cache.Definitions.Add(mySourceFile);
+
+            AddExecCommandSTS(cache, mySourceFile);
+            AddMinimapScaler(cache);
+
+            byte[] testCacheBytes;
+            using (var output = new MemoryStream())
+            {
+                cache.Save(output);
+                output.Flush();
+                testCacheBytes = output.ToArray();
+            }
+
+            File.WriteAllBytes("test_patch.redscripts", testCacheBytes);
+        }
+
+        private static void RemoveStaticArraySizeUsage(CacheFile cache)
+        {
             foreach (var function in cache.Definitions
                 .OfType<FunctionDefinition>()
                 .Where(fd => (fd.Flags & FunctionFlags.HasCode) != 0))
             {
-                for (int i = 0; i < function.Code.Count; )
+                for (int i = 0; i < function.Code.Count;)
                 {
                     if (function.Code[i].Opcode != Opcode.StaticArraySize)
                     {
@@ -75,11 +94,14 @@ namespace ScriptCachePatchTest
                     i += 2;
                 }
             }
+        }
 
-            var gameInstanceNative = GetDefinition<NativeDefinition>(cache, "GameInstance");
-            var stringNative = GetDefinition<NativeDefinition>(cache, "String");
+        private static void AddExecCommandSTS(CacheFile cache, SourceFileDefinition mySourceFile)
+        {
+            var gameInstanceNative = cache.GetNative("GameInstance");
+            var stringNative = cache.GetNative("String");
 
-            var inkMenuInstanceSwitchToScenarioClass = GetDefinition<ClassDefinition>(cache, "inkMenuInstance_SwitchToScenario");
+            var inkMenuInstanceSwitchToScenarioClass = cache.GetClass("inkMenuInstance_SwitchToScenario");
 
             /* Add a new definition for a native inkMenuInstance_SwitchToScenario since it doesn't exist
              * in the cache by default. It is actually defined by the game but none of the existing game
@@ -102,13 +124,10 @@ namespace ScriptCachePatchTest
             cache.Definitions.Add(inkMenuInstanceSwitchToScenarioRef);
 
             // stuff we use in our custom function
-            var stringToNameFunction = GetDefinition<FunctionDefinition>(cache, "StringToName");
-            var getUISystemFunction = GetDefinition<FunctionDefinition>(cache, "GetUISystem");
-            var uiSystemClass = GetDefinition<ClassDefinition>(cache, "UISystem");
-            var queueEventFunction = GetDefinition<FunctionDefinition>(cache, "QueueEvent", fd => fd.Parent == uiSystemClass);
-
-            var mySourceFile = new SourceFileDefinition(@"_\gibbed\exec.script");
-            cache.Definitions.Add(mySourceFile);
+            var stringToNameFunction = cache.GetFunction("StringToName");
+            var getUISystemFunction = cache.GetFunction("GameInstance", "GetUISystem");
+            var uiSystemClass = cache.GetClass("UISystem");
+            var queueEventFunction = uiSystemClass.GetFunction("QueueEvent");
 
             var myFunction = new FunctionDefinition()
             {
@@ -202,48 +221,85 @@ namespace ScriptCachePatchTest
 
             cg.Emit(Opcode.Nop);
             myFunction.Code.AddRange(cg.GetCode());
-
-            byte[] testCacheBytes;
-            using (var output = new MemoryStream())
-            {
-                cache.Save(output);
-                output.Flush();
-                testCacheBytes = output.ToArray();
-            }
-
-            File.WriteAllBytes("test_patch.redscripts", testCacheBytes);
         }
 
-        private static T GetDefinition<T>(CacheFile cache, string name)
-            where T : Definition
+        private static void AddMinimapScaler(CacheFile cache)
         {
-            return cache.Definitions
-                .OfType<T>()
-                .Single(d => d.Name == name);
+            var visionRadii = new(PropertyDefinition property, string propertyName, float scale)[]
+            {
+                (null, "visionRadiusCombat", 1.5f),
+                (null, "visionRadiusQuestArea", 1.5f),
+                (null, "visionRadiusSecurityArea", 1.5f),
+                (null, "visionRadiusInterior", 1.5f),
+                (null, "visionRadiusExterior", 4.0f),
+            };
+
+            var floatNative = cache.GetNative("Float");
+            var minimapContainerController = cache.GetClass("MinimapContainerController");
+
+            for (int i = 0; i < visionRadii.Length; i++)
+            {
+                var visionRadius = visionRadii[i];
+                if (visionRadius.scale.Equals(0.0f) == true ||
+                    visionRadius.scale.Equals(1.0f) == true)
+                {
+                    // if the scale is 0.0 or 1.0, skip
+                    continue;
+                }
+                visionRadius.property = CreateNativeProperty(visionRadius.propertyName, floatNative);
+                visionRadius.property.Parent = minimapContainerController;
+                cache.Definitions.Add(visionRadius.property);
+                minimapContainerController.Properties.Add(visionRadius.property);
+                visionRadii[i] = visionRadius;
+            }
+
+            var operatorMultiply = cache.GetFunction("OperatorMultiply;FloatFloat;Float");
+
+            var minimapContainerControllerOnInitialize = minimapContainerController.GetFunction("OnInitialize");
+
+            var code = minimapContainerControllerOnInitialize.Code;
+
+            // remove trailing nop
+            code.RemoveAt(code.Count - 1);
+
+            /* generate code for each vision radius property:
+             *   this.(property) *= scale
+             */
+            var cg = new CodeGenerator(code.Count);
+            foreach (var visionRadius in visionRadii)
+            {
+                if (visionRadius.property == null)
+                {
+                    // property didn't get created -- skip
+                    continue;
+                }
+                cg.Emit(Opcode.Assign);
+                {
+                    cg.Emit(Opcode.ObjectVar, visionRadius.property);
+                    var afterMultiplyLabel = cg.DefineLabel();
+                    cg.Emit(Opcode.FinalFunc, afterMultiplyLabel, 0, operatorMultiply);
+                    {
+                        cg.Emit(Opcode.ObjectVar, visionRadius.property);
+                        cg.Emit(Opcode.FloatConst, visionRadius.scale);
+                        cg.Emit(Opcode.ParamEnd);
+                    }
+                    cg.MarkLabel(afterMultiplyLabel);
+                }
+            }
+            cg.Emit(Opcode.Nop);
+
+            code.AddRange(cg.GetCode());
         }
 
-        private static T GetDefinition<T>(CacheFile cache, string name, Func<T, bool> predicate)
-            where T: Definition
+        private static PropertyDefinition CreateNativeProperty(string name, NativeDefinition type)
         {
-            if (predicate == null)
+            return new PropertyDefinition()
             {
-                throw new ArgumentNullException(nameof(predicate));
-            }
-            return cache.Definitions
-                .OfType<T>()
-                .Single(d => d.Name == name && predicate(d) == true);
-        }
-
-        private static IEnumerable<T> GetDefinitions<T>(CacheFile cache, Func<T, bool> predicate)
-           where T : Definition
-        {
-            if (predicate == null)
-            {
-                throw new ArgumentNullException(nameof(predicate));
-            }
-            return cache.Definitions
-                .OfType<T>()
-                .Where(d => predicate(d) == true);
+                Name = name,
+                Flags = PropertyFlags.IsNative | PropertyFlags.Unknown10,
+                Type = type,
+                Visibility = Visibility.Protected,
+            };
         }
     }
 }
