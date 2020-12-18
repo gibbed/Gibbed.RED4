@@ -43,6 +43,35 @@ namespace ScriptCachePatchTest
                 cache = CacheFile.Load(input, validate);
             }
 
+            // Remove StaticArraySize usage...
+            foreach (var function in cache.Definitions
+                .OfType<FunctionDefinition>()
+                .Where(fd => (fd.Flags & FunctionFlags.HasCode) != 0))
+            {
+                for (int i = 0; i < function.Code.Count; i++)
+                {
+                    if (function.Code[i].Opcode != Opcode.StaticArraySize)
+                    {
+                        continue;
+                    }
+
+                    var staticArrayType = (NativeDefinition)function.Code[i].Argument;
+                    if (staticArrayType.NativeType != NativeType.StaticArray)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    var staticArraySize = staticArrayType.ArraySize;
+                    function.Code[i] = staticArraySize switch
+                    {
+                        0 => new Instruction(Opcode.Int32Zero),
+                        1 => new Instruction(Opcode.Int32One),
+                        _ => new Instruction(Opcode.Int32Const, staticArraySize)
+                    };
+                    function.Code[i + 1] = new Instruction(Opcode.Nop);
+                }
+            }
+
             var gameInstanceNative = GetDefinition<NativeDefinition>(cache, "GameInstance");
             var stringNative = GetDefinition<NativeDefinition>(cache, "String");
 

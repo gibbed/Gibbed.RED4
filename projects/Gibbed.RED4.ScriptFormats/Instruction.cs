@@ -28,6 +28,13 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         public object Argument;
         public long LoadPosition;
 
+        public Instruction(Opcode opcode)
+        {
+            this.Opcode = opcode;
+            this.Argument = null;
+            this.LoadPosition = -1;
+        }
+
         public Instruction(Opcode opcode, object argument)
         {
             this.Opcode = opcode;
