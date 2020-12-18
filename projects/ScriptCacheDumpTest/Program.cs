@@ -309,19 +309,27 @@ namespace ScriptCacheDumpTest
             {
                 var (nextIndex, sourceLine, function) = (FinalFunc)instruction.Argument;
                 sb.Append($" (=>{nextIndex}, {sourceLine}, {function.ToPath()})");
-                if (function.Parameters.Count > 0)
+                if (function.Parameters.Count > 0 || function.ReturnType != null)
                 {
-                    sb.Append($" // parameters={function.Parameters.Count} (");
-                    for (int i = 0; i < function.Parameters.Count; i++)
+                    sb.Append(" //");
+                    if (function.Parameters.Count > 0)
                     {
-                        var parameter = function.Parameters[i];
-                        if (i > 0)
+                        sb.Append($" parameters={function.Parameters.Count} (");
+                        for (int i = 0; i < function.Parameters.Count; i++)
                         {
-                            sb.Append(", ");
+                            var parameter = function.Parameters[i];
+                            if (i > 0)
+                            {
+                                sb.Append(", ");
+                            }
+                            sb.Append($"{parameter.Name}: {parameter.Type.ToPath()}");
                         }
-                        sb.Append($"{parameter.Name}: {parameter.Type.ToPath()}");
+                        sb.Append(')');
                     }
-                    sb.Append(")");
+                    if (function.ReturnType != null)
+                    {
+                        sb.Append($" return={function.ReturnType.ToPath()}");
+                    }
                 }
                 sb.AppendLine();
             }
