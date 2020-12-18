@@ -227,12 +227,12 @@ namespace ScriptCachePatchTest
         {
             var visionRadii = new(PropertyDefinition property, string propertyName, float scale)[]
             {
-                (null, "visionRadiusVehicle", 4.0f),
+                (null, "visionRadiusVehicle", 3.0f),
                 (null, "visionRadiusCombat", 1.5f),
                 (null, "visionRadiusQuestArea", 1.5f),
                 (null, "visionRadiusSecurityArea", 1.5f),
                 (null, "visionRadiusInterior", 1.5f),
-                (null, "visionRadiusExterior", 4.0f),
+                (null, "visionRadiusExterior", 3.0f),
             };
 
             var floatNative = cache.GetNative("Float");
