@@ -141,6 +141,12 @@ namespace ScriptCacheDumpTest
 
         private static void DumpFunction(CacheFile cacheFile, FunctionDefinition function, StringBuilder sb, bool validate)
         {
+            var functionName = function.ToName();
+            if (function.Name != functionName)
+            {
+                sb.AppendLine($"// {function.Name}");
+            }
+
             sb.Append("function ");
 
             sb.Append(function.ToPath());
