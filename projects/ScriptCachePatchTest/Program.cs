@@ -227,6 +227,7 @@ namespace ScriptCachePatchTest
         {
             var visionRadii = new(PropertyDefinition property, string propertyName, float scale)[]
             {
+                (null, "visionRadiusVehicle", 4.0f),
                 (null, "visionRadiusCombat", 1.5f),
                 (null, "visionRadiusQuestArea", 1.5f),
                 (null, "visionRadiusSecurityArea", 1.5f),
