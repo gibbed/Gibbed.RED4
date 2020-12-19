@@ -182,12 +182,13 @@ namespace ScriptCacheDumpTest
                 sb.AppendLine($"  // Flags : {flags}");
             }
 
-            if (function.Locals != null)
+            if (function.Locals != null && function.Locals.Count > 0)
             {
                 foreach (var local in function.Locals)
                 {
                     sb.AppendLine($"  var {local.ToName()} : {local.Type.ToPath()};");
                 }
+                sb.AppendLine();
             }
 
             var groups = InstructionGrouper.GroupCode(cacheFile, function).ToArray();
