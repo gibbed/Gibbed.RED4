@@ -28,7 +28,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
     {
         public override DefinitionType DefinitionType => DefinitionType.Local;
 
-        public Definition Type { get; set; }
+        public NativeDefinition Type { get; set; }
         public byte Unknown28 { get; set; }
 
         internal override void Serialize(IDefinitionWriter writer)
