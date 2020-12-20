@@ -27,7 +27,7 @@
 | `18` |  `24` | `LocalVar`                 | `ll ll ll ll`                 | `uint32_t local_def_index`                                                        |
 | `19` |  `25` | `ParamVar`                 | `pp pp pp pp`                 | `uint32_t parameter_def_index`                                                    |
 | `1A` |  `26` | `ObjectVar`                | `pp pp pp pp`                 | `uint32_t property_def_index`                                                     |
-| `1B` |  `27` | `Breakpoint`               |                               |                                                                                   | Only available at runtime.
+| `1B` |  `27` | Unknown                    |                               |                                                                                   | Possibly `Breakpoint`. Only available at runtime.
 | `1C` |  `28` | `Switch`                   | `dd dd dd dd` `ff ff`         | `uint32_t definition_index` `int16_t first_case_offset`                           | 
 | `1D` |  `29` | `SwitchLabel`              | `ff ff` `tt tt`               | `int16_t false_offset` `int16_t true_offset`                                      |
 | `1E` |  `30` | `SwitchDefault`            |                               |                                                                                   |
