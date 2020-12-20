@@ -97,7 +97,6 @@ namespace Gibbed.RED4.ScriptFormats.Emit
                 case Opcode.LocalVar:
                 case Opcode.ParamVar:
                 case Opcode.ObjectVar:
-                case Opcode.Unknown27:
                 case Opcode.SwitchDefault:
                 case Opcode.ParamEnd:
                 case Opcode.Return:
@@ -289,7 +288,6 @@ namespace Gibbed.RED4.ScriptFormats.Emit
                 case Opcode.BoolFalse:
                 case Opcode.Assign:
                 case Opcode.Target:
-                case Opcode.Unknown27:
                 case Opcode.SwitchDefault:
                 case Opcode.ParamEnd:
                 case Opcode.Return:
