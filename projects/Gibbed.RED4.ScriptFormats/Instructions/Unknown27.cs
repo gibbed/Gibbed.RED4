@@ -20,36 +20,30 @@
  *    distribution.
  */
 
+using System;
+
 namespace Gibbed.RED4.ScriptFormats.Instructions
 {
-    [Instruction(Opcode.Nop)]
-    [Instruction(Opcode.Null)]
-    [Instruction(Opcode.Int32One)]
-    [Instruction(Opcode.Int32Zero)]
-    [Instruction(Opcode.BoolTrue)]
-    [Instruction(Opcode.BoolFalse)]
-    [Instruction(Opcode.Target)]
-    [Instruction(Opcode.ParamEnd)]
-    [Instruction(Opcode.Delete)]
-    [Instruction(Opcode.This)]
-    [Instruction(Opcode.WeakHandleNull)]
-    [Instruction(Opcode.Unknown98)]
-    internal static class _Empty0
+    [Instruction(Opcode.Unknown27)]
+    internal static class Unknown27
     {
         public const int ChainCount = 0;
+
+        private const string _Error = nameof(Opcode.Unknown27)
+            + " is generated at runtime by the game and cannot be serialized into the script cache correctly";
 
 #pragma warning disable IDE0060 // Remove unused parameter
         public static (object, uint) Read(IDefinitionReader reader)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
-            return (null, 0);
+            throw new NotSupportedException(_Error);
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
         public static uint Write(object argument, IDefinitionWriter writer)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
-            return 0;
+            throw new NotSupportedException(_Error);
         }
     }
 }
