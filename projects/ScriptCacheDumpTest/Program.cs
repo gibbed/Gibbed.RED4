@@ -68,13 +68,29 @@ namespace ScriptCacheDumpTest
             }
 
             DumpConsoleCallableFunctions(cache);
-            DumpClassFunctions(cache.GetClass("PlayerPuppet"), "PlayerPuppet_functions.txt");
-            DumpClassFunctions(cache.GetClass("GameInstance"), "GameInstance_functions.txt");
-            DumpClassFunctions(cache.GetClass("TDB"), "TDB_functions.txt");
+            DumpGameInstanceClasses(cache);
+            DumpClass(cache.GetClass("TDB"), "TDB_functions.txt");
             DumpFunctions(cache, validate);
             DumpFunctionsToRespectiveFiles(cache);
             DumpEnumerations(cache);
             return 0;
+        }
+
+        private static void DumpGameInstanceClasses(CacheFile cache)
+        {
+            Directory.CreateDirectory("game_instance_class_dumps");
+            var gameInstanceDef = cache.GetClass("GameInstance");
+            DumpClass(gameInstanceDef, Path.Combine("game_instance_class_dumps", "GameInstance.txt"));
+            foreach (var className in cache.GetClass("GameInstance").Functions
+                .Where(f => f.ReturnType != null)
+                .Select(f => f.ReturnType)
+                .OfType<NativeDefinition>()
+                .Where(n => n.NativeType == NativeType.Handle || n.NativeType == NativeType.WeakHandle)
+                .Select(n => n.BaseType.Name))
+            {
+                var classDef = cache.GetClass(className);
+                DumpClass(classDef, Path.Combine("game_instance_class_dumps", $"{classDef.Name}.txt"));
+            }
         }
 
         private static void DumpConsoleCallableFunctions(CacheFile cache)
@@ -127,7 +143,7 @@ namespace ScriptCacheDumpTest
             File.WriteAllText("console_callable_script_functions.txt", sb.ToString());
         }
 
-        private static void DumpClassFunctions(ClassDefinition classDef, string outputPath)
+        private static void DumpClass(ClassDefinition classDef, string outputPath)
         {
             var classes = new List<ClassDefinition>();
             var baseClassDef = classDef.BaseClass;
@@ -139,34 +155,45 @@ namespace ScriptCacheDumpTest
             classes.Add(classDef);
 
             var sb = new StringBuilder();
-            foreach (var klass in classes)
+            for (int i = 0; i < classes.Count; i++)
             {
-                foreach (var tuple in klass.Functions
-                    .Select(c => (function: c, path: c.ToPath()))
+                if (i > 0)
+                {
+                    sb.AppendLine();
+                }
+
+                var @class = classes[i];
+
+                sb.Append($"class {@class.ToPath()}");
+                if (@class.BaseClass != null)
+                {
+                    sb.Append($" extends {@class.BaseClass.ToPath()}");
+                }
+                sb.AppendLine();
+                sb.AppendLine("{");
+
+                foreach (var tuple in @class.Functions
+                    .Select(f => (function: f, path: f.ToPath()))
                     .OrderBy(t => t.path))
                 {
                     var (function, path) = tuple;
 
-                    sb.Append($"function {path}(");
-                    for (int i = 0; i < function.Parameters.Count; i++)
-                    {
-                        var parameter = function.Parameters[i];
-                        if (i > 0)
-                        {
-                            sb.Append(", ");
-                        }
-                        sb.Append($"{parameter.Name}");
-                        sb.Append($" : {parameter.Type.ToPath()}");
-                    }
-                    sb.Append(")");
-
-                    if (function.ReturnType != null)
-                    {
-                        sb.Append($" : {function.ReturnType.ToPath()}");
-                    }
-
-                    sb.AppendLine(";");
+                    sb.Append("  ");
+                    sb.Append(function.Visibility.ToString().ToLowerInvariant());
+                    sb.AppendLine($" {GetFunctionDeclaration(function)};");
                 }
+
+                foreach (var tuple in @class.Properties
+                    .Select(p => (property: p, path: p.ToPath()))
+                    .OrderBy(t => t.path))
+                {
+                    var (property, path) = tuple;
+                    sb.Append("  ");
+                    sb.Append(property.Visibility.ToString().ToLowerInvariant());
+                    sb.AppendLine($" {GetPropertyDeclaration(property)};");
+                }
+
+                sb.AppendLine("}");
             }
 
             File.WriteAllText(outputPath, sb.ToString());
@@ -236,24 +263,7 @@ namespace ScriptCacheDumpTest
                 sb.AppendLine($"// {function.Name}");
             }
 
-            sb.Append($"function {function.ToPath()}(");
-            for (int i = 0; i < function.Parameters.Count; i++)
-            {
-                var parameter = function.Parameters[i];
-                if (i > 0)
-                {
-                    sb.Append(", ");
-                }
-                sb.Append($"{parameter.ToName()}: {parameter.Type.ToPath()}");
-            }
-            sb.Append(")");
-
-            if (function.ReturnType != null)
-            {
-                sb.Append($" : {function.ReturnType.ToPath()}");
-            }
-
-            sb.AppendLine();
+            sb.AppendLine(GetFunctionDeclaration(function, fullName: true));
             sb.AppendLine("{");
 
             const FunctionFlags ignoredFlags = FunctionFlags.HasReturnValue |
@@ -334,6 +344,59 @@ namespace ScriptCacheDumpTest
             sb.AppendLine("}");
         }
 
+        private static string GetFunctionDeclaration(FunctionDefinition function, bool withName = true, bool fullName = false)
+        {
+            var sb = new StringBuilder();
+            if ((function.Flags & FunctionFlags.IsNative) != 0)
+            {
+                sb.Append("native ");
+            }
+            if (withName == true)
+            {
+                sb.Append($"function {(fullName == true ? function.ToPath() : function.ToName())}");
+            }
+            else
+            {
+                sb.Append("func");
+            }
+            sb.Append('(');
+            for (int i = 0; i < function.Parameters.Count; i++)
+            {
+                var parameter = function.Parameters[i];
+                if (i > 0)
+                {
+                    sb.Append(", ");
+                }
+                if ((parameter.Flags & ParameterFlags.IsOptional) != 0)
+                {
+                    sb.Append("optional ");
+                }
+                if ((parameter.Flags & ParameterFlags.IsOut) != 0)
+                {
+                    sb.Append("out ");
+                }
+                sb.Append($"{parameter.ToName()} : {parameter.Type.ToPath()}");
+                /*var unknownParameterFlags = parameter.Flags & ~(ParameterFlags.IsOptional | ParameterFlags.IsOut);
+                if (unknownParameterFlags != 0)
+                {
+                    sb.Append($" [UNKNOWN PARAMETER FLAGS={unknownParameterFlags}]");
+                }*/
+            }
+            sb.Append(")");
+            if (function.ReturnType != null)
+            {
+                sb.Append($" : {function.ReturnType.ToPath()}");
+            }
+            return sb.ToString();
+        }
+
+        private static string GetPropertyDeclaration(PropertyDefinition property)
+        {
+            var sb = new StringBuilder();
+            sb.Append($"var {property.ToName()} : {property.Type.ToPath()}");
+            return sb.ToString();
+        }
+
         private static void DumpInstruction(Instruction instruction, StringBuilder sb)
         {
             var opName = GetOpcodeName(instruction);
@@ -403,32 +466,7 @@ namespace ScriptCacheDumpTest
             {
                 var (nextIndex, sourceLine, function) = (FinalFunc)instruction.Argument;
                 sb.Append($" (=>{nextIndex}, {sourceLine}, {function.ToPath()})");
-                if (function.Parameters.Count > 0 || function.ReturnType != null)
-                {
-                    sb.Append(" //");
-                    if (function.Parameters.Count > 0)
-                    {
-                        sb.Append($" parameters={function.Parameters.Count} (");
-                        for (int i = 0; i < function.Parameters.Count; i++)
-                        {
-                            var parameter = function.Parameters[i];
-                            if (i > 0)
-                            {
-                                sb.Append(", ");
-                            }
-                            sb.Append($"{parameter.Name}: {parameter.Type.ToPath()}");
-                        }
-                        sb.Append(')');
-                    }
-                    if (function.ReturnType != null)
-                    {
-                        sb.Append($" return={function.ReturnType.ToPath()}");
-                    }
-                    if ((function.Flags & FunctionFlags.IsNative) != 0)
-                    {
-                        sb.Append("  native");
-                    }
-                }
+                sb.Append($" // {GetFunctionDeclaration(function, false)}");
                 sb.AppendLine();
             }
             else if (instruction.Opcode == Opcode.VirtualFunc)

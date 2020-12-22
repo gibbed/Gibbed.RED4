@@ -148,7 +148,7 @@ namespace ScriptCachePatchTest
                 Name = "gameInstance",
                 Parent = myFunction,
                 Type = gameInstanceNative,
-                Unknown28 = 0,
+                Flags = ParameterFlags.None,
             };
             cache.Definitions.Add(myParameter0);
             myFunction.Parameters.Add(myParameter0);
@@ -158,7 +158,7 @@ namespace ScriptCachePatchTest
                 Name = "name",
                 Parent = myFunction,
                 Type = stringNative,
-                Unknown28 = 0,
+                Flags = ParameterFlags.None,
             };
             cache.Definitions.Add(myParameter1);
             myFunction.Parameters.Add(myParameter1);

@@ -29,7 +29,11 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         public override DefinitionType DefinitionType => DefinitionType.Parameter;
 
         public Definition Type { get; set; }
-        public byte Unknown28 { get; set; }
+        public ParameterFlags Flags { get; set; }
+
+        private static readonly ParameterFlags KnownFlags =
+            ParameterFlags.IsOptional | ParameterFlags.IsOut |
+            ParameterFlags.Unknown2 | ParameterFlags.Unknown3;
 
         internal override void Serialize(IDefinitionWriter writer)
         {
@@ -39,7 +43,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             }
 
             writer.WriteReference(this.Type);
-            writer.WriteValueU8(this.Unknown28);
+            writer.WriteValueU8((byte)this.Flags);
         }
 
         internal override void Deserialize(IDefinitionReader reader)
@@ -49,8 +53,17 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 throw new ArgumentNullException(nameof(reader));
             }
 
-            this.Type = reader.ReadReference<NativeDefinition>();
-            this.Unknown28 = reader.ReadValueU8();
+            var type = reader.ReadReference<NativeDefinition>();
+
+            var flags = (ParameterFlags)reader.ReadValueU8();
+            var unknownFlags = flags & ~KnownFlags;
+            if (unknownFlags != ParameterFlags.None)
+            {
+                throw new FormatException();
+            }
+
+            this.Type = type;
+            this.Flags = flags;
         }
     }
 }

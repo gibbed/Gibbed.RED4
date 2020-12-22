@@ -76,6 +76,13 @@ namespace Gibbed.RED4.ScriptHelpers
                 .Single(d => d.Name == name);
         }
 
+        public static ClassDefinition TryGetClass(this CacheFile cache, string name)
+        {
+            return cache.Definitions
+                .OfType<ClassDefinition>()
+                .SingleOrDefault(d => d.Name == name);
+        }
+
         public static FunctionDefinition GetFunction(this CacheFile cache, string name)
         {
             return cache.Definitions
