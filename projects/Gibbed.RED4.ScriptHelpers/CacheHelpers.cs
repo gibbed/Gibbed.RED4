@@ -26,9 +26,9 @@ using System.Linq;
 using Gibbed.RED4.ScriptFormats;
 using Gibbed.RED4.ScriptFormats.Definitions;
 
-namespace ScriptCachePatchTest
+namespace Gibbed.RED4.ScriptHelpers
 {
-    internal static class CacheHelpers
+    public static class CacheHelpers
     {
         public static T GetDefinition<T>(this CacheFile cache, string name)
             where T : Definition
@@ -90,9 +90,9 @@ namespace ScriptCachePatchTest
                 .Single(d => d.Name == functionName);
         }
 
-        public static FunctionDefinition GetFunction(this ClassDefinition klass, string name)
+        public static FunctionDefinition GetFunction(this ClassDefinition @class, string name)
         {
-            return klass
+            return @class
                 .Functions
                 .Single(d => d.Name == name);
         }

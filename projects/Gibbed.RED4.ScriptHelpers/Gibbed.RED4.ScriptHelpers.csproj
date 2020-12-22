@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Company>Gibbed</Company>
+    <Authors>Gibbed</Authors>
+    <Description>http://gib.me/</Description>
+    <Copyright>Copyright © Gibbed 2020</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Gibbed.RED4.ScriptFormats\Gibbed.RED4.ScriptFormats.csproj" />
+  </ItemGroup>
+</Project>

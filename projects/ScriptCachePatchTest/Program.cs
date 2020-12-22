@@ -26,6 +26,7 @@ using System.Linq;
 using Gibbed.RED4.ScriptFormats;
 using Gibbed.RED4.ScriptFormats.Definitions;
 using Gibbed.RED4.ScriptFormats.Emit;
+using Gibbed.RED4.ScriptHelpers;
 
 namespace ScriptCachePatchTest
 {

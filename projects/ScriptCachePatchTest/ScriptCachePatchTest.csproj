@@ -14,5 +14,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Gibbed.RED4.FileFormats\Gibbed.RED4.FileFormats.csproj" />
     <ProjectReference Include="..\Gibbed.RED4.ScriptFormats\Gibbed.RED4.ScriptFormats.csproj" />
+    <ProjectReference Include="..\Gibbed.RED4.ScriptHelpers\Gibbed.RED4.ScriptHelpers.csproj" />
   </ItemGroup>
 </Project>

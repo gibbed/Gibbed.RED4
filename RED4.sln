@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RED4Generators", "projects\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptCachePatchTest", "projects\ScriptCachePatchTest\ScriptCachePatchTest.csproj", "{9868F02C-59C5-40B7-9EAF-2599EBEFA04E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gibbed.RED4.ScriptHelpers", "projects\Gibbed.RED4.ScriptHelpers\Gibbed.RED4.ScriptHelpers.csproj", "{278E3BF9-065C-4189-AA7C-1AAEE1AF8252}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{9868F02C-59C5-40B7-9EAF-2599EBEFA04E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9868F02C-59C5-40B7-9EAF-2599EBEFA04E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9868F02C-59C5-40B7-9EAF-2599EBEFA04E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{278E3BF9-065C-4189-AA7C-1AAEE1AF8252}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{278E3BF9-065C-4189-AA7C-1AAEE1AF8252}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{278E3BF9-065C-4189-AA7C-1AAEE1AF8252}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{278E3BF9-065C-4189-AA7C-1AAEE1AF8252}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

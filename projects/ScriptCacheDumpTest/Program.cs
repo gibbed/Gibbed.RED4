@@ -25,9 +25,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Gibbed.RED4.ScriptFormats;
 using Gibbed.RED4.ScriptFormats.Definitions;
 using Gibbed.RED4.ScriptFormats.Instructions;
+using Gibbed.RED4.ScriptHelpers;
 
 namespace ScriptCacheDumpTest
 {
@@ -59,36 +61,47 @@ namespace ScriptCacheDumpTest
                 testCache = CacheFile.Load(input, validate);
             }
 
-            DumpExecCallableFunctions(cache);
+            DumpConsoleCallableFunctions(cache);
+            DumpClassFunctions(cache.GetClass("PlayerPuppet"), "PlayerPuppet_functions.txt");
             DumpFunctions(cache, validate);
             DumpEnumerations(cache);
         }
 
-        private static void DumpExecCallableFunctions(CacheFile scriptCacheFile)
+        private static void DumpConsoleCallableFunctions(CacheFile cache)
         {
-            var gameInstanceDef = scriptCacheFile.Definitions
-                            .OfType<NativeDefinition>()
-                            .Where(t => t.Name == "GameInstance")
-                            .SingleOrDefault();
-            var stringType = scriptCacheFile.Definitions
-                .OfType<NativeDefinition>()
-                .SingleOrDefault(t => t.Name == "String");
-            var candidates = scriptCacheFile.Definitions
+            var gameInstanceDef = cache.GetNative("GameInstance");
+            var stringType = cache.GetNative("String");
+            var candidates = cache.Definitions
                 .OfType<FunctionDefinition>()
                 .Where(f =>
                     f.Parameters.Count >= 1 &&
-                    f.Parameters.Count <= 6 &&
                     f.Parameters[0].Type == gameInstanceDef &&
                     f.Parameters.Skip(1).All(p => p.Type == stringType))
                 .ToArray();
+
+            var regex = new Regex(@"^[a-zA-Z0-9_]+$");
+
             var sb = new StringBuilder();
+            sb.AppendLine("Script functions that are callable by yamashi's CyberEngineTweaks console.");
+            sb.AppendLine("https://github.com/yamashi/CyberEngineTweaks");
+            sb.AppendLine();
+
             foreach (var tuple in candidates
                 .Select(c => (function: c, path: c.ToPath()))
                 .Where(t => t.function.Parent == null)
                 .OrderBy(t => t.path))
             {
                 var (function, path) = tuple;
-                sb.Append($"{path}(");
+                if (regex.IsMatch(function.Name) == true)
+                {
+                    sb.Append($"Game.{function.Name}");
+                }
+                else
+                {
+                    var name = LuaHelpers.Escape(function.Name);
+                    sb.Append($"Game['{name}']");
+                }
+                sb.Append('(');
                 for (int i = 1; i < function.Parameters.Count; i++)
                 {
                     var parameter = function.Parameters[i];
@@ -100,7 +113,53 @@ namespace ScriptCacheDumpTest
                 }
                 sb.AppendLine(")");
             }
-            File.WriteAllText("exec_callable_script_functions.txt", sb.ToString());
+
+            File.WriteAllText("console_callable_script_functions.txt", sb.ToString());
+        }
+
+        private static void DumpClassFunctions(ClassDefinition classDef, string outputPath)
+        {
+            var classes = new List<ClassDefinition>();
+            var baseClassDef = classDef.BaseClass;
+            while (baseClassDef != null)
+            {
+                classes.Insert(0, baseClassDef);
+                baseClassDef = baseClassDef.BaseClass;
+            }
+            classes.Add(classDef);
+
+            var sb = new StringBuilder();
+            foreach (var klass in classes)
+            {
+                foreach (var tuple in klass.Functions
+                    .Select(c => (function: c, path: c.ToPath()))
+                    .OrderBy(t => t.path))
+                {
+                    var (function, path) = tuple;
+
+                    sb.Append($"function {path}(");
+                    for (int i = 0; i < function.Parameters.Count; i++)
+                    {
+                        var parameter = function.Parameters[i];
+                        if (i > 0)
+                        {
+                            sb.Append(", ");
+                        }
+                        sb.Append($"{parameter.Name}");
+                        sb.Append($" : {parameter.Type.ToPath()}");
+                    }
+                    sb.Append(")");
+
+                    if (function.ReturnType != null)
+                    {
+                        sb.Append($" : {function.ReturnType.ToPath()}");
+                    }
+
+                    sb.AppendLine(";");
+                }
+            }
+
+            File.WriteAllText(outputPath, sb.ToString());
         }
 
         private static void DumpFunctions(CacheFile cache, bool validate)
@@ -147,12 +206,7 @@ namespace ScriptCacheDumpTest
                 sb.AppendLine($"// {function.Name}");
             }
 
-            sb.Append("function ");
-
-            sb.Append(function.ToPath());
-
-            sb.Append("(");
-
+            sb.Append($"function {function.ToPath()}(");
             for (int i = 0; i < function.Parameters.Count; i++)
             {
                 var parameter = function.Parameters[i];
@@ -162,12 +216,11 @@ namespace ScriptCacheDumpTest
                 }
                 sb.Append($"{parameter.ToName()}: {parameter.Type.ToPath()}");
             }
-
             sb.Append(")");
 
             if (function.ReturnType != null)
             {
-                sb.Append($" : {function.ReturnType.ToPath()} ");
+                sb.Append($" : {function.ReturnType.ToPath()}");
             }
 
             sb.AppendLine();
@@ -207,9 +260,11 @@ namespace ScriptCacheDumpTest
 
                 var instruction = group.Instruction;
 
+                sb.Append(' ');
+
                 if (instruction.LoadPosition < 0)
                 {
-                    sb.Append($"  (@0x?????? ????) #{opcodeIndex++,-4}");
+                    sb.Append($" (@0x?????? ????)");
                 }
                 else
                 {
@@ -228,8 +283,10 @@ namespace ScriptCacheDumpTest
                         relativePosition = loadPosition - function.CodeLoadPosition;
                     }
 
-                    sb.Append($"  (@0x{absolutePosition:X6} {relativePosition,4}) #{opcodeIndex++,-4}");
+                    sb.Append($" (@0x{absolutePosition:X6} {relativePosition,4})");
                 }
+
+                sb.Append($" #{opcodeIndex++,-4}");
 
                 sb.Append(indent);
                 sb.Append(isLast == true ? " └─" : " ├─");
@@ -336,6 +393,10 @@ namespace ScriptCacheDumpTest
                     if (function.ReturnType != null)
                     {
                         sb.Append($" return={function.ReturnType.ToPath()}");
+                    }
+                    if ((function.Flags & FunctionFlags.IsNative) != 0)
+                    {
+                        sb.Append("  native");
                     }
                 }
                 sb.AppendLine();
