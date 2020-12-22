@@ -69,6 +69,8 @@ namespace ScriptCacheDumpTest
 
             DumpConsoleCallableFunctions(cache);
             DumpClassFunctions(cache.GetClass("PlayerPuppet"), "PlayerPuppet_functions.txt");
+            DumpClassFunctions(cache.GetClass("GameInstance"), "GameInstance_functions.txt");
+            DumpClassFunctions(cache.GetClass("TDB"), "TDB_functions.txt");
             DumpFunctions(cache, validate);
             DumpFunctionsToRespectiveFiles(cache);
             DumpEnumerations(cache);
