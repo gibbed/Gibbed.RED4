@@ -35,9 +35,15 @@ namespace ScriptCacheDumpTest
 {
     internal static class Program
     {
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             const bool validate = true;
+
+            if (args.Length != 1)
+            {
+                Console.Error.WriteLine("Please provide path to 'final.redscripts' as the first argument.");
+                return 1;
+            }
 
             CacheFile cache;
             var fileBytes = File.ReadAllBytes(args[0]);
@@ -64,7 +70,9 @@ namespace ScriptCacheDumpTest
             DumpConsoleCallableFunctions(cache);
             DumpClassFunctions(cache.GetClass("PlayerPuppet"), "PlayerPuppet_functions.txt");
             DumpFunctions(cache, validate);
+            DumpFunctionsToRespectiveFiles(cache);
             DumpEnumerations(cache);
+            return 0;
         }
 
         private static void DumpConsoleCallableFunctions(CacheFile cache)
@@ -196,6 +204,26 @@ namespace ScriptCacheDumpTest
             }
 
             File.WriteAllText("test_function_dump.txt", sb.ToString(), Encoding.UTF8);
+        }
+
+        private static void DumpFunctionsToRespectiveFiles(CacheFile cache)
+        {
+            foreach (var files in cache.Definitions
+                .OfType<FunctionDefinition>()
+                .Where(f => (f.Flags & FunctionFlags.HasCode) != 0 && f.SourceFile != null)
+                .OrderBy(f => f.SourceLine)
+                .GroupBy(f => f.SourceFile.PathHash))
+            {
+                foreach (var function in files)
+                {
+                    var sb = new StringBuilder();
+                    DumpFunction(cache, function, sb, false);
+
+                    var path = Path.Join("test_function_dump", function.SourceFile.Path);
+                    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                    File.WriteAllText(path, sb.ToString(), Encoding.UTF8);
+                }
+            }
         }
 
         private static void DumpFunction(CacheFile cacheFile, FunctionDefinition function, StringBuilder sb, bool validate)
