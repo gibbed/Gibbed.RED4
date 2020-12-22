@@ -50,6 +50,8 @@ namespace ScriptCachePatchTest
             AddExecCommandSTS(cache, mySourceFile);
             AddMinimapScaler(cache);
 
+            PatchJohnnySkillChecks(cache);
+
             byte[] testCacheBytes;
             using (var output = new MemoryStream())
             {
@@ -290,6 +292,45 @@ namespace ScriptCachePatchTest
             cg.Emit(Opcode.Nop);
 
             code.AddRange(cg.GetCode());
+        }
+
+        private static void PatchJohnnySkillChecks(CacheFile cache)
+        {
+            // This removes the code checks that make the "Johnny" node have the glitch out effect.
+
+            // These are hardcoded locations of the checks in the code. This is BAD.
+            // TODO(gibbed): dynamically search for the checks.
+
+            // PerksMainGameController::OnAttributeClicked
+            // Remove an entire Jump chain.
+            var target1 = cache.GetFunction("PerksMainGameController", "OnAttributeClicked");
+            for (int i = 0; i < 6; i++)
+            {
+                target1.Code[i] = new Instruction(Opcode.Nop);
+            }
+
+            // PerksMainGameController::OnProficiencyClicked
+            // Remove an entire Jump chain.
+            var target2 = cache.GetFunction("PerksMainGameController", "OnProficiencyClicked");
+            for (int i = 0; i < 6; i++)
+            {
+                target2.Code[i] = new Instruction(Opcode.Nop);
+            }
+
+            // PerksMenuAttributeDisplayController::Update
+            // Change a JumpIfFalse to Jump.
+            var target3 = cache.GetFunction("PerksMenuAttributeDisplayController", "Update;");
+            target3.Code[2] = new Instruction(Opcode.Jump, target3.Code[2].Argument);
+
+            // PerkMenuTooltipController::SetupCustom
+            // Change a switch label to jump to the same location as the false result.
+            var target4 = cache.GetFunction("PerkMenuTooltipController", "SetupCustom;AttributeTooltipData");
+            target4.Code[4] = new Instruction(Opcode.SwitchLabel, new Gibbed.RED4.ScriptFormats.Instructions.SwitchLabel(10, 10));
+
+            // PerksMenuAttributeDisplayController::SetHovered
+            // Change a JumpIfFalse to Jump.
+            var target5 = cache.GetFunction("PerksMenuAttributeDisplayController", "SetHovered;Bool");
+            target5.Code[10] = new Instruction(Opcode.Jump, target5.Code[10].Argument);
         }
 
         private static PropertyDefinition CreateNativeProperty(string name, NativeDefinition type)
