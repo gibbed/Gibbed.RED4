@@ -29,11 +29,11 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
     {
         None = 0,
         Unknown0 = 1u << 0,
-        Unknown1 = 1u << 1,
+        IsExec = 1u << 1,
         Unknown2 = 1u << 2,
         Unknown3 = 1u << 3,
         IsNative = 1u << 4,
-        Unknown5 = 1u << 5,
+        IsEvent = 1u << 5,
         Unknown6 = 1u << 6,
         HasReturnValue = 1u << 7,
         Unknown8 = 1u << 8,

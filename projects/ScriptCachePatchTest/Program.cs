@@ -136,7 +136,7 @@ namespace ScriptCachePatchTest
             {
                 Name = "STS",
                 Flags =
-                    FunctionFlags.Unknown0 | FunctionFlags.Unknown1 |
+                    FunctionFlags.Unknown0 | FunctionFlags.IsExec |
                     FunctionFlags.HasParameters | FunctionFlags.HasLocals |
                     FunctionFlags.HasCode,
                 SourceFile = mySourceFile,
