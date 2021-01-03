@@ -24,27 +24,8 @@ using System;
 
 namespace Gibbed.RED4.ScriptFormats.Definitions
 {
-    [Flags]
-    public enum FunctionFlags : uint
+    public abstract class FunctionVarDefinition : Definition
     {
-        None = 0,
-        IsStatic = 1u << 0,
-        IsExec = 1u << 1,
-        Unknown2 = 1u << 2,
-        Unknown3 = 1u << 3,
-        IsNative = 1u << 4,
-        IsEvent = 1u << 5,
-        Unknown6 = 1u << 6,
-        HasReturnValue = 1u << 7,
-        Unknown8 = 1u << 8,
-        HasParameters = 1 << 9,
-        HasLocals = 1 << 10,
-        HasCode = 1u << 11,
-        Unknown12 = 1u << 12,
-        Unknown13 = 1u << 13,
-        IsConstant = 1u << 18,
-        Unknown19 = 1u << 19,
-        Unknown20 = 1u << 20,
-        Unknown21 = 1u << 21,
+        public NativeDefinition Type { get; set; }
     }
 }

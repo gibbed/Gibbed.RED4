@@ -51,7 +51,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         public List<Instruction> Code { get; }
 
         private static readonly FunctionFlags KnownFlags =
-            FunctionFlags.Unknown0 | FunctionFlags.IsExec |
+            FunctionFlags.IsStatic | FunctionFlags.IsExec |
             FunctionFlags.Unknown2 | FunctionFlags.Unknown3 |
             FunctionFlags.IsNative | FunctionFlags.IsEvent |
             FunctionFlags.Unknown6 |

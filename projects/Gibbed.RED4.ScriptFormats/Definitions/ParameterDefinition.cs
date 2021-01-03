@@ -24,11 +24,9 @@ using System;
 
 namespace Gibbed.RED4.ScriptFormats.Definitions
 {
-    public class ParameterDefinition : Definition
+    public class ParameterDefinition : FunctionVarDefinition
     {
         public override DefinitionType DefinitionType => DefinitionType.Parameter;
-
-        public Definition Type { get; set; }
         public ParameterFlags Flags { get; set; }
 
         private static readonly ParameterFlags KnownFlags =
