@@ -24,11 +24,9 @@ using System;
 
 namespace Gibbed.RED4.ScriptFormats.Definitions
 {
-    public class LocalDefinition : Definition
+    public class LocalDefinition : FunctionVarDefinition
     {
         public override DefinitionType DefinitionType => DefinitionType.Local;
-
-        public NativeDefinition Type { get; set; }
         public byte Unknown28 { get; set; }
 
         internal override void Serialize(IDefinitionWriter writer)
