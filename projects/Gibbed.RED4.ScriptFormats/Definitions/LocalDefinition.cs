@@ -27,7 +27,11 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
     public class LocalDefinition : VariableDefinition
     {
         public override DefinitionType DefinitionType => DefinitionType.Local;
-        public byte Unknown28 { get; set; }
+
+        public LocalFlags Flags { get; set; }
+
+        private static readonly LocalFlags KnownFlags =
+            LocalFlags.Unknown0;
 
         internal override void Serialize(IDefinitionWriter writer)
         {
@@ -37,7 +41,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             }
 
             writer.WriteReference(this.Type);
-            writer.WriteValueU8(this.Unknown28);
+            writer.WriteValueU8((byte)this.Flags);
         }
 
         internal override void Deserialize(IDefinitionReader reader)
@@ -47,8 +51,16 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
                 throw new ArgumentNullException(nameof(reader));
             }
 
-            this.Type = reader.ReadReference<NativeDefinition>();
-            this.Unknown28 = reader.ReadValueU8();
+            var type = reader.ReadReference<NativeDefinition>();
+            var flags = (LocalFlags)reader.ReadValueU8();
+            var unknownFlags = flags & ~KnownFlags;
+            if (unknownFlags != LocalFlags.None)
+            {
+                throw new FormatException();
+            }
+
+            this.Type = type;
+            this.Flags = flags;
         }
     }
 }

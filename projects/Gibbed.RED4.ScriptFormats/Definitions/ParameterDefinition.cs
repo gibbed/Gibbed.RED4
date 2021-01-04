@@ -27,6 +27,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
     public class ParameterDefinition : VariableDefinition
     {
         public override DefinitionType DefinitionType => DefinitionType.Parameter;
+
         public ParameterFlags Flags { get; set; }
 
         private static readonly ParameterFlags KnownFlags =
