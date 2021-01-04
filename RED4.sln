@@ -17,6 +17,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptCachePatchTest", "pro
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gibbed.RED4.ScriptHelpers", "projects\Gibbed.RED4.ScriptHelpers\Gibbed.RED4.ScriptHelpers.csproj", "{278E3BF9-065C-4189-AA7C-1AAEE1AF8252}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{6D73FB16-06E3-4CB7-BD76-CA5AF303ECB5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{C16EA66E-B0F1-41EA-AE11-9EB2F7772DE4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gibbed.RED4.Common", "projects\Gibbed.RED4.Common\Gibbed.RED4.Common.csproj", "{F1E9A432-C73C-4678-BB21-62D4F251272B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "@Solution", "@Solution", "{2E21D3D5-2FCD-4BDF-913F-2EB205DC54D6}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,9 +62,20 @@ Global
 		{278E3BF9-065C-4189-AA7C-1AAEE1AF8252}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{278E3BF9-065C-4189-AA7C-1AAEE1AF8252}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{278E3BF9-065C-4189-AA7C-1AAEE1AF8252}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1E9A432-C73C-4678-BB21-62D4F251272B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1E9A432-C73C-4678-BB21-62D4F251272B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1E9A432-C73C-4678-BB21-62D4F251272B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1E9A432-C73C-4678-BB21-62D4F251272B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B57058EC-42A2-4B01-AAA5-E936AE0788FE} = {6D73FB16-06E3-4CB7-BD76-CA5AF303ECB5}
+		{7389BBBA-2159-4380-BFE3-CD044BC6DF74} = {C16EA66E-B0F1-41EA-AE11-9EB2F7772DE4}
+		{8C2F17BD-F5EB-402C-8C60-BE109ED2C013} = {C16EA66E-B0F1-41EA-AE11-9EB2F7772DE4}
+		{9868F02C-59C5-40B7-9EAF-2599EBEFA04E} = {C16EA66E-B0F1-41EA-AE11-9EB2F7772DE4}
+		{278E3BF9-065C-4189-AA7C-1AAEE1AF8252} = {C16EA66E-B0F1-41EA-AE11-9EB2F7772DE4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8B0D5E50-008A-4517-AE62-3F80397F5797}

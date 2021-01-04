@@ -21,6 +21,7 @@
  */
 
 using System;
+using FNV1a64 = Gibbed.RED4.Common.Hashing.FNV1a64;
 
 namespace Gibbed.RED4.ScriptFormats.Definitions
 {
@@ -36,7 +37,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
         public SourceFileDefinition(string path)
         {
             this.Path = path ?? throw new ArgumentNullException(nameof(path));
-            this.PathHash = FileFormats.Hashing.FNV1a64.Compute(path);
+            this.PathHash = FNV1a64.Compute(path);
         }
 
         public SourceFileDefinition(string path, ulong pathHash)

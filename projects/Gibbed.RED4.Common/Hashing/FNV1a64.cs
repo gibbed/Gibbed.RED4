@@ -1,4 +1,4 @@
-﻿/* Copyright (c) 2020 Rick (rick 'at' gibbed 'dot' us)
+﻿/* Copyright (c) 2021 Rick (rick 'at' gibbed 'dot' us)
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
 
 using System;
 
-namespace Gibbed.RED4.FileFormats.Hashing
+namespace Gibbed.RED4.Common.Hashing
 {
     public static class FNV1a64
     {
@@ -35,7 +35,7 @@ namespace Gibbed.RED4.FileFormats.Hashing
         {
             if (value == null)
             {
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
             }
 
             if (value.Length == 0)

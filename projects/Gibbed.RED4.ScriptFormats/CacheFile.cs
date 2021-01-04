@@ -27,7 +27,7 @@ using System.Linq;
 using System.Text;
 using Gibbed.IO;
 using Gibbed.RED4.ScriptFormats.Cache;
-using CRC32 = Gibbed.RED4.FileFormats.Hashing.CRC32;
+using CRC32 = Gibbed.RED4.Common.Hashing.CRC32;
 
 namespace Gibbed.RED4.ScriptFormats
 {

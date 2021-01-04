@@ -1,4 +1,4 @@
-﻿/* Copyright (c) 2020 Rick (rick 'at' gibbed 'dot' us)
+﻿/* Copyright (c) 2021 Rick (rick 'at' gibbed 'dot' us)
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -20,26 +20,47 @@
  *    distribution.
  */
 
-namespace Gibbed.RED4.FileFormats.Hashing
+namespace Gibbed.RED4.Common.Hashing
 {
     public static class CRC32
     {
         public static uint Compute(string value)
         {
-            uint hash = 0xFFFFFFFFu;
-            if (value != null)
+            return Compute(value, 0);
+        }
+
+        public static uint Compute(string value, uint seed)
+        {
+            if (value == null)
             {
-                for (int i = 0; i < value.Length; i++)
-                {
-                    hash = _Table[(byte)hash ^ (byte)value[i]] ^ (hash >> 8);
-                }
+                return seed;
+            }
+            uint hash = ~seed;
+            for (int i = 0; i < value.Length; i++)
+            {
+                hash = _Table[(byte)hash ^ (byte)value[i]] ^ (hash >> 8);
             }
             return ~hash;
         }
 
+        public static uint Compute(byte[] bytes)
+        {
+            return Compute(bytes, 0, bytes.Length, 0);
+        }
+
+        public static uint Compute(byte[] bytes, uint seed)
+        {
+            return Compute(bytes, 0, bytes.Length, seed);
+        }
+
         public static uint Compute(byte[] buffer, int offset, int count)
         {
-            uint hash = 0xFFFFFFFFu;
+            return Compute(buffer, offset, count, 0);
+        }
+
+        public static uint Compute(byte[] buffer, int offset, int count, uint seed)
+        {
+            uint hash = ~seed;
             for (int i = offset; i < offset + count; i++)
             {
                 hash = _Table[(byte)hash ^ buffer[i]] ^ (hash >> 8);
