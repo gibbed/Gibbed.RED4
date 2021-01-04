@@ -1,4 +1,4 @@
-﻿/* Copyright (c) 2020 Rick (rick 'at' gibbed 'dot' us)
+﻿/* Copyright (c) 2021 Rick (rick 'at' gibbed 'dot' us)
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -24,7 +24,7 @@ using System;
 
 namespace Gibbed.RED4.ScriptFormats.Definitions
 {
-    public class LocalDefinition : FunctionVarDefinition
+    public class LocalDefinition : VariableDefinition
     {
         public override DefinitionType DefinitionType => DefinitionType.Local;
         public byte Unknown28 { get; set; }

@@ -1,4 +1,4 @@
-﻿/* Copyright (c) 2020 Rick (rick 'at' gibbed 'dot' us)
+﻿/* Copyright (c) 2021 Rick (rick 'at' gibbed 'dot' us)
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -24,7 +24,7 @@ using System;
 
 namespace Gibbed.RED4.ScriptFormats.Definitions
 {
-    public abstract class FunctionVarDefinition : Definition
+    public abstract class VariableDefinition : Definition
     {
         public NativeDefinition Type { get; set; }
     }
