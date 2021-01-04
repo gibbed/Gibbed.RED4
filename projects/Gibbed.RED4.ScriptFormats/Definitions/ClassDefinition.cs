@@ -45,9 +45,9 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
 
         private static readonly ClassFlags KnownFlags =
             ClassFlags.Unknown0 | ClassFlags.IsAbstract |
-            ClassFlags.Unknown2 | ClassFlags.IsClass |
-            ClassFlags.HasFunctions | ClassFlags.Unknown5 |
-            ClassFlags.IsImportOnly | ClassFlags.Unknown8;
+            ClassFlags.Unknown2 | ClassFlags.IsStruct |
+            ClassFlags.HasFunctions | ClassFlags.HasProperties |
+            ClassFlags.IsImportOnly | ClassFlags.HasOverriddenProperties;
 
         public bool IsA(ClassDefinition type)
         {
@@ -78,11 +78,11 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             {
                 writer.WriteReferences(this.Functions);
             }
-            if ((this.Flags & ClassFlags.Unknown5) != 0)
+            if ((this.Flags & ClassFlags.HasProperties) != 0)
             {
                 writer.WriteReferences(this.Properties);
             }
-            if ((this.Flags & ClassFlags.Unknown8) != 0)
+            if ((this.Flags & ClassFlags.HasOverriddenProperties) != 0)
             {
                 writer.WriteReferences(this.OverriddenProperties);
             }
@@ -107,13 +107,13 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             var baseClass = reader.ReadReference<ClassDefinition>();
             var functions = (flags & ClassFlags.HasFunctions) != 0
                 ? reader.ReadReferences<FunctionDefinition>()
-                : new FunctionDefinition[0];
-            var unknown20s = (flags & ClassFlags.Unknown5) != 0
+                : Array.Empty<FunctionDefinition>();
+            var properties = (flags & ClassFlags.HasProperties) != 0
                 ? reader.ReadReferences<PropertyDefinition>()
-                : new PropertyDefinition[0];
-            var unknown30s = (flags & ClassFlags.Unknown8) != 0
+                : Array.Empty<PropertyDefinition>();
+            var overriddenProperties = (flags & ClassFlags.HasOverriddenProperties) != 0
                 ? reader.ReadReferences<PropertyDefinition>()
-                : new PropertyDefinition[0];
+                : Array.Empty<PropertyDefinition>();
 
             this.Functions.Clear();
             this.Properties.Clear();
@@ -122,8 +122,8 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             this.Flags = flags;
             this.BaseClass = baseClass;
             this.Functions.AddRange(functions);
-            this.Properties.AddRange(unknown20s);
-            this.OverriddenProperties.AddRange(unknown30s);
+            this.Properties.AddRange(properties);
+            this.OverriddenProperties.AddRange(overriddenProperties);
         }
     }
 }
