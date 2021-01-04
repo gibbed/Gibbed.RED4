@@ -163,10 +163,10 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             var unknown58 = (flags & FunctionFlags.Unknown8) != 0 ? reader.ReadReference() : null;
             var parameters = (flags & FunctionFlags.HasParameters) != 0
                 ? reader.ReadReferences<ParameterDefinition>()
-                : new ParameterDefinition[0];
+                : Array.Empty<ParameterDefinition>();
             var locals = (flags & FunctionFlags.HasLocals) != 0
                 ? reader.ReadReferences<LocalDefinition>()
-                : new LocalDefinition[0];
+                : Array.Empty<LocalDefinition>();
             var unknown98 = (flags & FunctionFlags.Unknown6) != 0
                 ? reader.ReadValueU32()
                 : default;
@@ -184,7 +184,7 @@ namespace Gibbed.RED4.ScriptFormats.Definitions
             }
             else
             {
-                instructions = new Instruction[0];
+                instructions = Array.Empty<Instruction>();
             }
 
             this.Parameters.Clear();

@@ -143,7 +143,7 @@ namespace Gibbed.RED4.ScriptFormats
 
             if (array.Count == 0)
             {
-                bytes = new byte[0];
+                bytes = Array.Empty<byte>();
             }
             else
             {
