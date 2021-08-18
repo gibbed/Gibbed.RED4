@@ -27,7 +27,7 @@
 | `24` | `LocalVar`                 | `18` `xx xx xx xx`                 | `uint32_t local_def_index`                                                        |
 | `25` | `ParamVar`                 | `19` `xx xx xx xx`                 | `uint32_t parameter_def_index`                                                    |
 | `26` | `ObjectVar`                | `1A` `xx xx xx xx`                 | `uint32_t property_def_index`                                                     |
-| `27` | Unknown                    | `1B`                               |                                                                                   | Possibly `Breakpoint`. Only available at runtime.
+| `27` | `TypedVar`                 | `1B` `xx xx xx xx xx xx xx xx` `yy yy yy yy yy yy yy yy` | `void* script_instance` `IRTTIType* instance_type`          | Runtime native code interop with the script VM 
 | `28` | `Switch`                   | `1C` `xx xx xx xx` `yy yy`         | `uint32_t definition_index` `int16_t first_case_offset`                           | 
 | `29` | `SwitchLabel`              | `1D` `xx xx` `yy yy`               | `int16_t false_offset` `int16_t true_offset`                                      |
 | `30` | `SwitchDefault`            | `1E`                               |                                                                                   |
